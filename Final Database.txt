@@ -1,143 +1,393 @@
+// ==========================================
+// API Response Shape Hints & Flows
+// ==========================================
+// Auth flow: users -> user_permissions -> roles
+// User Profile flow: users -> persons -> personal_profiles -> social_media
+// League Organization flow: ruling_bodies -> organizations -> leagues -> seasons -> divisions -> teams
+// Game Operations flow: games -> game_setup -> game_settings -> game_officials
+// Live Scoring flow: games -> live_game_scoring -> game_events -> play_by_play_log
+// Player Roster flow: teams -> rosters -> players -> player_stats
+// Marketplace flow: team_storefronts -> storefront_products -> storefront_orders -> storefront_order_items
+// Development flow: player_development_plans -> skill_assessments -> player_milestones -> player_progression_history
+// ==========================================
+
+
+Enum organization_type {
+  governing_body
+  league
+  team
+}
+Enum management_position {
+  president
+  general_manager
+  coach
+  scout
+  medical_staff
+}
+Enum league_level {
+  professional
+  semi_pro
+  amateur
+  youth
+}
+Enum player_position {
+  center
+  left_wing
+  right_wing
+  defenseman
+  goaltender
+}
+Enum player_handedness {
+  left
+  right
+  ambidextrous
+}
+Enum contract_type {
+  two_way
+  one_way
+  entry_level
+  extension
+  pto
+}
+Enum tournament_type {
+  invitational
+  championship
+  exhibition
+  qualifier
+}
+Enum event_type {
+  game
+  practice
+  meeting
+  community
+  press_conference
+}
+Enum rsvp_status {
+  pending
+  attending
+  declined
+  maybe
+}
+Enum task_status {
+  pending
+  in_progress
+  completed
+  cancelled
+}
+Enum marketing_campaign_status {
+  draft
+  active
+  paused
+  completed
+}
+Enum marketing_campaign_type {
+  social
+  email
+  print
+  tv
+}
+Enum storefront_status {
+  active
+  inactive
+  maintenance
+}
+Enum storefront_theme {
+  default
+  dark
+  light
+}
+Enum loan_status {
+  active
+  terminated
+  completed
+}
+Enum all_star_game_status {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+Enum document_type {
+  contract
+  medical
+  id
+  tax
+  other
+}
+Enum access_level {
+  private
+  public
+  restricted
+}
+Enum entity_type {
+  user
+  team
+  league
+  player
+}
+Enum user_friend_status {
+  pending
+  accepted
+  blocked
+}
+Enum channel_status {
+  active
+  archived
+  deleted
+}
+Enum channel_type {
+  public
+  private
+  announcement
+}
+Enum registration_form_status {
+  draft
+  active
+  archived
+}
+Enum registration_submission_status {
+  pending
+  approved
+  rejected
+}
+Enum bonus_status {
+  pending
+  earned
+  paid
+}
+Enum fine_status {
+  pending
+  paid
+  appealed
+}
+Enum bracket_status {
+  draft
+  active
+  completed
+}
+Enum series_status {
+  scheduled
+  in_progress
+  completed
+}
+Enum carpool_status {
+  open
+  full
+  cancelled
+}
+Enum carpool_participant_status {
+  pending
+  accepted
+  declined
+}
+Enum camp_status {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+Enum camp_registration_status {
+  pending
+  registered
+  waitlisted
+  cancelled
+}
+Enum deliverable_status {
+  pending
+  in_progress
+  completed
+}
+Enum model_status {
+  draft
+  training
+  active
+  deprecated
+}
+Enum waitlist_status {
+  waiting
+  notified
+  purchased
+}
+Enum membership_status {
+  active
+  expired
+  cancelled
+}
+Enum campaign_status {
+  active
+  completed
+  cancelled
+}
+Enum fan_club_status {
+  active
+  inactive
+}
+Enum stream_status {
+  scheduled
+  live
+  completed
+  cancelled
+}
+Enum milestone_status {
+  pending
+  achieved
+  missed
+}
+Enum waiver_status {
+  active
+  cleared
+  claimed
+}
+Enum claim_status {
+  pending
+  successful
+  unsuccessful
+}
+Enum bracket_type {
+  single_elimination
+  double_elimination
+}
+
 // Core users and persons
 Table users {
-  id integer [pk, increment]
-  username varchar [unique, not null]
-  email varchar [unique, not null]
-  password_hash varchar [not null]
+  id integer [pk, increment, note: 'readonly']
+  username varchar(100) [unique, not null]
+  email varchar(255) [unique, not null, note: 'display as email input']
+  password_hash varchar [not null, note: 'readonly']
   role_id integer [ref: > roles.id]
   public_id varchar [unique]
   vip_tier vip_tier [default: 'standard']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table persons {
-  id integer [pk, increment]
-  first_name varchar [not null]
-  last_name varchar [not null]
+  id integer [pk, increment, note: 'readonly']
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
   date_of_birth date
   nationality_id integer [ref: > nationalities.id]
-  bio text
-  created_at timestamp [default: `now()`]
+  bio text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table roles {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [unique, not null]
-  description text
+  description text [note: 'display as textarea']
 }
 
 Table nationalities {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [unique, not null]
   code varchar(2) [unique]
 }
 
 Table ruling_bodies {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [unique, not null]
   country varchar
-  description text
+  description text [note: 'display as textarea']
   website varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Organizational structure
 Table organizations {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
-  type varchar
+  type organization_type [note: 'display as dropdown']
   country varchar
   founded_year integer
   headquarters_city varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table leagues {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   organization_id integer [ref: > organizations.id]
   name varchar [unique, not null]
-  level varchar
+  level league_level [note: 'display as dropdown']
   country varchar
   founded_year integer
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table seasons {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   year integer [not null]
   start_date date [not null]
   end_date date
   status season_status [default: 'scheduled']
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table divisions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   name varchar [not null]
   region varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table teams {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   organization_id integer [ref: > organizations.id]
   division_id integer [ref: > divisions.id]
   public_id varchar [unique]
   name varchar [not null]
   abbreviation varchar(3)
-  city varchar [not null]
+  city varchar(100) [not null, note: \'requires valid city name format\']
   founded_year integer
   home_arena varchar
-  logo_url varchar
-  created_at timestamp [default: `now()`]
+  logo_url varchar(255) [note: \'display as url/image input\']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table venues {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
-  city varchar [not null]
+  city varchar(100) [not null, note: \'requires valid city name format\']
   country varchar
   capacity integer
-  address text
+  address text [note: 'display as textarea']
   website varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table management {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   person_id integer [ref: > persons.id, not null]
   team_id integer [ref: > teams.id]
   organization_id integer [ref: > organizations.id]
-  position varchar [not null]
+  position management_position [not null, note: 'display as dropdown']
   start_date date
   end_date date
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Player management
 Table players {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   person_id integer [ref: > persons.id, not null]
   team_id integer [ref: > teams.id]
   public_id varchar [unique]
-  position varchar [not null]
+  position player_position [not null, note: 'display as dropdown']
   jersey_number integer
   height_cm integer
   weight_kg integer
-  handedness varchar
+  handedness player_handedness [note: 'display as dropdown']
   drafted_year integer
-  logo_url varchar
-  created_at timestamp [default: `now()`]
+  logo_url varchar(255) [note: \'display as url/image input\']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table rosters {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
-  player_id integer [ref: > players.id, not null]
+  player_id integer [ref: > players.id, not null, note: 'max 23 active roster players']
   jersey_number integer
   status roster_status [default: 'active']
   indexes {
@@ -146,7 +396,7 @@ Table rosters {
 }
 
 Table lineups {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   player_id integer [ref: > players.id, not null]
   team_id integer [ref: > teams.id, not null]
@@ -158,80 +408,80 @@ Table lineups {
 }
 
 Table injuries {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   injury_type varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   start_date date [not null]
   estimated_return_date date
   status injury_status [default: 'active']
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table suspensions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   reason varchar [not null]
   start_date date [not null]
   end_date date
   games_suspended integer
   status suspension_status [default: 'active']
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table free_agency {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   season_id integer [ref: > seasons.id, not null]
   available_date date
   status free_agency_status [default: 'available']
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table player_equipment {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   equipment_type varchar [not null]
   brand varchar
   model varchar
-  description text
-  created_at timestamp [default: `now()`]
+  description text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Contracts and trades
 Table contracts {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
-  team_id integer [ref: > teams.id, not null]
+  team_id integer [ref: > teams.id, not null, note: 'max 50 active contracts per team']
   start_date date [not null]
   end_date date [not null]
   salary_annual decimal(12, 2)
-  contract_type varchar
+  contract_type contract_type [note: 'display as dropdown']
   status contract_status [default: 'active']
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table trades {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   trade_date date [not null]
   player_id integer [ref: > players.id, not null]
   from_team_id integer [ref: > teams.id, not null]
   to_team_id integer [ref: > teams.id, not null]
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table draft {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   season_id integer [ref: > seasons.id, not null]
   round integer [not null]
   overall_pick integer [not null]
   team_id integer [ref: > teams.id, not null]
   player_id integer [ref: > players.id]
   college varchar
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Games and events
@@ -293,7 +543,7 @@ Enum event_type_enum {
 }
 
 Table games {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   season_id integer [ref: > seasons.id, not null]
   home_team_id integer [ref: > teams.id, not null]
   away_team_id integer [ref: > teams.id, not null]
@@ -304,32 +554,32 @@ Table games {
   home_goals integer [default: 0]
   away_goals integer [default: 0]
   attendance integer
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table game_setup {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   home_roster_confirmed boolean [default: false]
   away_roster_confirmed boolean [default: false]
   officials_assigned boolean [default: false]
   venue_ready boolean [default: false]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table game_settings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   period_duration_minutes integer [default: 20]
   intermission_duration_minutes integer [default: 15]
   overtime_enabled boolean [default: true]
   shootout_enabled boolean [default: true]
   video_review_enabled boolean [default: false]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table game_events {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   event_type event_type_enum [not null]
   player_id integer [ref: > players.id]
@@ -340,24 +590,24 @@ Table game_events {
   time_in_period varchar
   x_coordinate decimal(5, 2)
   y_coordinate decimal(5, 2)
-  description text
-  created_at timestamp [default: `now()`]
+  description text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table game_summaries {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   home_team_shots integer
   away_team_shots integer
   home_team_penalties_minutes integer
   away_team_penalties_minutes integer
   game_mvp_player_id integer [ref: > players.id]
-  game_notes text
-  created_at timestamp [default: `now()`]
+  game_notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table live_game_scoring {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   period integer [not null]
   home_goals integer [default: 0]
@@ -367,7 +617,7 @@ Table live_game_scoring {
 
 // Statistics and standings
 Table player_stats {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   season_id integer [ref: > seasons.id, not null]
   games_played integer [default: 0]
@@ -376,11 +626,11 @@ Table player_stats {
   points integer [default: 0]
   penalty_minutes integer [default: 0]
   plus_minus integer [default: 0]
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
 }
 
 Table standings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   season_id integer [ref: > seasons.id, not null]
   division_id integer [ref: > divisions.id, not null]
   team_id integer [ref: > teams.id, not null]
@@ -391,23 +641,23 @@ Table standings {
   points integer [default: 0]
   goals_for integer [default: 0]
   goals_against integer [default: 0]
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
 }
 
 // Practices
 Table practices {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   practice_date date [not null]
   start_time time
   end_time time
   location varchar
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table practice_attendance {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   practice_id integer [ref: > practices.id, not null]
   player_id integer [ref: > players.id, not null]
   attendance_status practice_attendance_status [default: 'present']
@@ -417,17 +667,17 @@ Table practice_attendance {
 }
 
 Table officials {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   person_id integer [ref: > persons.id, not null]
   official_type official_type [not null]
   license_number varchar [unique]
   certification_level varchar
   certification_expiry date
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table game_officials {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   official_id integer [ref: > officials.id, not null]
   role varchar [not null]
@@ -438,17 +688,17 @@ Table game_officials {
 
 // Tournaments
 Table tournaments {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
   start_date date [not null]
   end_date date [not null]
   location varchar
-  tournament_type varchar
-  created_at timestamp [default: `now()`]
+  tournament_type tournament_type [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table tournament_participants {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   tournament_id integer [ref: > tournaments.id, not null]
   team_id integer [ref: > teams.id, not null]
   seed integer
@@ -459,62 +709,62 @@ Table tournament_participants {
 
 // Achievements and awards
 Table achievements {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   achievement_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   achievement_date date
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table awards {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   season_id integer [ref: > seasons.id, not null]
   award_name varchar [not null]
   player_id integer [ref: > players.id]
   team_id integer [ref: > teams.id]
   award_category varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Social and media
 Table social_media {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   platform varchar [not null]
   handle varchar [not null]
-  profile_url varchar
+  profile_url varchar(255) [note: \'display as url/image input\']
   followers integer [default: 0]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table media {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id]
   player_id integer [ref: > players.id]
   team_id integer [ref: > teams.id]
   media_type varchar [not null]
   title varchar [not null]
-  description text
-  url varchar
-  created_at timestamp [default: `now()`]
+  description text [note: 'display as textarea']
+  url varchar(255) [note: \'display as url/image input\']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table documents {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
-  document_type varchar [not null]
-  file_url varchar [not null]
+  document_type document_type [not null, note: 'display as dropdown']
+  file_url varchar(255) [not null, note: \'display as url/image input\']
   file_size_bytes integer
   mime_type varchar
-  entity_type varchar
+  entity_type entity_type [note: 'display as dropdown']
   entity_id integer
   uploaded_by_user_id integer [ref: > users.id, not null]
-  access_level varchar [default: 'private']
+  access_level access_level [default: 'private', note: 'display as dropdown']
   expiry_date date
   is_archived boolean [default: false]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (entity_type, entity_id)
     (uploaded_by_user_id)
@@ -522,7 +772,7 @@ Table documents {
 }
 
 Table document_access_logs {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   document_id integer [ref: > documents.id, not null]
   accessed_by_user_id integer [ref: > users.id, not null]
   access_type varchar [default: 'view']
@@ -531,23 +781,23 @@ Table document_access_logs {
 
 // Events and RSVP
 Table events {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   event_date timestamp [not null]
   location varchar
-  event_type varchar
+  event_type event_type [note: 'display as dropdown']
   capacity integer
   status event_status [default: 'scheduled']
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table event_rsvp {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   event_id integer [ref: > events.id, not null]
   user_id integer [ref: > users.id, not null]
-  rsvp_status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
+  rsvp_status rsvp_status [default: 'pending', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (event_id, user_id) [unique]
   }
@@ -555,55 +805,55 @@ Table event_rsvp {
 
 // Sponsors
 Table brands {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [unique, not null]
   manufacturer_id integer [ref: > manufacturers.id]
   country varchar
   website varchar
-  logo_url varchar
-  description text
-  created_at timestamp [default: `now()`]
+  logo_url varchar(255) [note: \'display as url/image input\']
+  description text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table manufacturers {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [unique, not null]
   country varchar [not null]
   headquarters_city varchar
   website varchar
-  contact_email varchar
+  contact_email varchar(255) [note: 'display as email input']
   contact_phone varchar
-  logo_url varchar
-  description text
-  created_at timestamp [default: `now()`]
+  logo_url varchar(255) [note: \'display as url/image input\']
+  description text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table retailers {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
   contact_person varchar
-  email varchar
+  email varchar(255) [note: 'display as email input']
   phone varchar
   website varchar
-  address text
+  address text [note: 'display as textarea']
   city varchar
   country varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table sponsors {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
   contact_person varchar
-  email varchar
+  email varchar(255) [note: 'display as email input']
   phone varchar
   website varchar
-  logo_url varchar
-  created_at timestamp [default: `now()`]
+  logo_url varchar(255) [note: \'display as url/image input\']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table team_sponsors {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   sponsor_id integer [ref: > sponsors.id, not null]
   sponsorship_level sponsorship_tier
@@ -617,26 +867,26 @@ Table team_sponsors {
 
 // Settings and administration
 Table settings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   setting_key varchar [unique, not null]
   setting_value text
-  description text
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  description text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table admin_settings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id]
   organization_id integer [ref: > organizations.id]
   setting_key varchar [not null]
   setting_value text [not null]
   setting_type varchar [default: 'string']
   category varchar
-  description text
+  description text [note: 'display as textarea']
   is_feature_flag boolean [default: false]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (league_id, setting_key) [unique]
     (organization_id, setting_key) [unique]
@@ -644,7 +894,7 @@ Table admin_settings {
 }
 
 Table system_setup_wizard {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   step_number integer [default: 1]
   step_name varchar [not null]
@@ -652,24 +902,24 @@ Table system_setup_wizard {
   data_submitted text
   completed_at timestamp
   completed_by_user_id integer [ref: > users.id]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (league_id, step_number) [unique]
   }
 }
 
 Table system_definitions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   definition_key varchar [unique, not null]
   definition_value text [not null]
-  description text
+  description text [note: 'display as textarea']
   category varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table scorekeeper_setup {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   home_scorekeeper_user_id integer [ref: > users.id]
   away_scorekeeper_user_id integer [ref: > users.id]
@@ -677,44 +927,44 @@ Table scorekeeper_setup {
   away_timekeeper_user_id integer [ref: > users.id]
   scoreboard_integration varchar
   clock_configuration text
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table scorekeeper_settings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   enable_auto_save boolean [default: true]
   enable_notifications boolean [default: true]
   theme varchar [default: 'light']
   shortcuts text
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table league_manager_options {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   user_id integer [ref: > users.id, not null]
   can_manage_schedule boolean [default: false]
   can_manage_rosters boolean [default: false]
   can_create_events boolean [default: false]
   can_manage_divisions boolean [default: false]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table team_manager_options {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   user_id integer [ref: > users.id, not null]
   can_manage_roster boolean [default: false]
   can_schedule_practices boolean [default: false]
   can_edit_lineups boolean [default: false]
   can_manage_contracts boolean [default: false]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table personalisation {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   preferred_language varchar [default: 'en']
   theme varchar [default: 'light']
@@ -722,124 +972,124 @@ Table personalisation {
   favorite_teams text
   favorite_players text
   dashboard_layout text
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table user_friends {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id_1 integer [ref: > users.id, not null]
   user_id_2 integer [ref: > users.id, not null]
-  status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status user_friend_status [default: 'pending', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (user_id_1, user_id_2) [unique]
   }
 }
 
 Table user_followers {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   follower_user_id integer [ref: > users.id, not null]
   followed_user_id integer [ref: > users.id, not null]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (follower_user_id, followed_user_id) [unique]
   }
 }
 
 Table tasks {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   title varchar [not null]
-  description text
-  status varchar [default: 'pending']
+  description text [note: 'display as textarea']
+  status task_status [default: 'pending', note: 'display as dropdown']
   due_date date
   priority varchar [default: 'medium']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 // Advertising and marketing
 Table marketing_campaigns {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
-  description text
-  campaign_type varchar [not null]
+  description text [note: 'display as textarea']
+  campaign_type marketing_campaign_type [not null, note: 'display as dropdown']
   start_date date [not null]
   end_date date
   budget_usd decimal(12, 2)
   target_audience varchar
-  status varchar [default: 'draft']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status marketing_campaign_status [default: 'draft', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table advertisements {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   campaign_id integer [ref: > marketing_campaigns.id]
   title varchar [not null]
-  description text
-  media_url varchar
+  description text [note: 'display as textarea']
+  media_url varchar(255) [note: \'display as url/image input\']
   display_location varchar
   impressions integer [default: 0]
   clicks integer [default: 0]
   sponsor_id integer [ref: > sponsors.id]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 // Equipment marketplace
 Table equipment_marketplace {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   seller_user_id integer [ref: > users.id, not null]
   brand_id integer [ref: > brands.id]
   equipment_type varchar [not null]
   model varchar
   condition varchar
   price_usd decimal(10, 2) [not null]
-  description text
+  description text [note: 'display as textarea']
   images text
   status marketplace_status [default: 'active']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 // Team storefronts and merchandise
 Table team_storefronts {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   storefront_name varchar [not null]
-  description text
-  banner_image_url varchar
-  logo_url varchar
-  theme varchar [default: 'default']
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  description text [note: 'display as textarea']
+  banner_image_url varchar(255) [note: \'display as url/image input\']
+  logo_url varchar(255) [note: \'display as url/image input\']
+  theme storefront_theme [default: 'default', note: 'display as dropdown']
+  status storefront_status [default: 'active', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (team_id) [unique]
   }
 }
 
 Table storefront_products {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   storefront_id integer [ref: > team_storefronts.id, not null]
   product_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   category varchar [not null]
   price_usd decimal(10, 2) [not null]
   cost_usd decimal(10, 2)
   sku varchar [unique]
   images text
   stock_quantity integer [default: 0]
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status varchar [default: 'active'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table storefront_orders {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   storefront_id integer [ref: > team_storefronts.id, not null]
   customer_user_id integer [ref: > users.id, not null]
   order_date timestamp [default: `now()`]
@@ -849,53 +1099,53 @@ Table storefront_orders {
   total_amount_usd decimal(12, 2) [not null]
   order_status order_status [default: 'pending']
   shipment_id integer [ref: > shipments.id]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table storefront_order_items {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   order_id integer [ref: > storefront_orders.id, not null]
   product_id integer [ref: > storefront_products.id, not null]
   quantity integer [not null]
   unit_price_usd decimal(10, 2) [not null]
   line_total_usd decimal(12, 2) [not null]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table equipment_marketplace_transactions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   listing_id integer [ref: > equipment_marketplace.id, not null]
   buyer_user_id integer [ref: > users.id, not null]
   seller_user_id integer [ref: > users.id, not null]
   transaction_date timestamp [default: `now()`]
   price_usd decimal(10, 2) [not null]
   status transaction_status [default: 'pending']
-  shipping_address text
+  shipping_address text [note: 'display as textarea']
   shipment_id integer [ref: > shipments.id]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table warehouses {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
   address text [not null]
-  city varchar [not null]
+  city varchar(100) [not null, note: \'requires valid city name format\']
   country varchar [not null]
   manager_name varchar
-  manager_email varchar
+  manager_email varchar(255) [note: 'display as email input']
   capacity_units integer
   current_inventory_units integer [default: 0]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table shipments {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   transaction_id integer [ref: > equipment_marketplace_transactions.id]
   origin_warehouse_id integer [ref: > warehouses.id]
   destination_address text [not null]
   recipient_name varchar [not null]
-  recipient_email varchar
+  recipient_email varchar(255) [note: 'display as email input']
   recipient_phone varchar
   shipment_date date
   expected_delivery_date date
@@ -904,22 +1154,22 @@ Table shipments {
   tracking_number varchar [unique]
   status shipment_status [default: 'pending']
   carrier_name varchar
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table delivery_tracking {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   shipment_id integer [ref: > shipments.id, not null]
   location varchar
-  status varchar [not null]
-  description text
+  status varchar [not null] [note: 'display as dropdown']
+  description text [note: 'display as textarea']
   timestamp timestamp [default: `now()`]
   recorded_at timestamp [default: `now()`]
 }
 
 Table inventory_stock {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   warehouse_id integer [ref: > warehouses.id, not null]
   equipment_id integer [ref: > equipment_marketplace.id]
   brand_id integer [ref: > brands.id]
@@ -928,50 +1178,50 @@ Table inventory_stock {
   quantity_reserved integer [default: 0]
   quantity_available integer [default: 0]
   reorder_level integer [default: 10]
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (warehouse_id, equipment_id) [unique]
   }
 }
 
 Table loan_contracts {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   from_team_id integer [ref: > teams.id, not null]
-  to_team_id integer [ref: > teams.id, not null]
+  to_team_id integer [ref: > teams.id, not null, note: 'max 50 active contracts per team']
   start_date date [not null]
   end_date date [not null]
   terms text
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status loan_status [default: 'active', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 // All-Star competition
 Table all_star_competitions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   season_id integer [ref: > seasons.id, not null]
   name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   competition_date date [not null]
   location varchar
-  status varchar [default: 'scheduled']
-  created_at timestamp [default: `now()`]
+  status varchar [default: 'scheduled'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table all_star_selection {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   competition_id integer [ref: > all_star_competitions.id, not null]
   player_id integer [ref: > players.id, not null]
   team_id integer [ref: > teams.id, not null]
   selection_type varchar [default: 'voted']
   voting_points integer [default: 0]
-  status varchar [default: 'selected']
-  created_at timestamp [default: `now()`]
+  status varchar [default: 'selected'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table all_star_games {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   competition_id integer [ref: > all_star_competitions.id, not null]
   game_date date [not null]
   team_1_name varchar
@@ -979,71 +1229,71 @@ Table all_star_games {
   home_goals integer [default: 0]
   away_goals integer [default: 0]
   mvp_player_id integer [ref: > players.id]
-  status varchar [default: 'scheduled']
-  created_at timestamp [default: `now()`]
+  status all_star_game_status [default: 'scheduled', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Game events enhancements
 Table goal_songs {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   player_id integer [ref: > players.id]
   song_title varchar [not null]
   artist varchar
-  audio_url varchar
-  created_at timestamp [default: `now()`]
+  audio_url varchar(255) [note: \'display as url/image input\']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table accolades {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   accolade_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   accolade_date date
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Rink and venue details
 Table rink_dimensions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   venue_id integer [ref: > venues.id, not null]
   length_feet integer
   width_feet integer
   corner_radius_feet decimal(5, 2)
   boards_height_inches integer
   glass_height_inches integer
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table ice_conditions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   venue_id integer [ref: > venues.id, not null]
   last_measured_at timestamp
   temperature_fahrenheit decimal(5, 2)
   humidity_percent decimal(5, 2)
   thickness_inches decimal(3, 2)
   surface_condition varchar
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table venue_locker_rooms {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   venue_id integer [ref: > venues.id, not null]
   room_name varchar [not null]
   team_id integer [ref: > teams.id]
   capacity integer
   amenities text
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Farm teams
 Table farm_teams {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   parent_team_id integer [ref: > teams.id, not null]
   farm_team_id integer [ref: > teams.id, not null]
   affiliation_level varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (parent_team_id, farm_team_id) [unique]
   }
@@ -1051,13 +1301,13 @@ Table farm_teams {
 
 // Salary cap
 Table salary_caps {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   season_id integer [ref: > seasons.id, not null]
   cap_amount_usd decimal(12, 2) [not null]
   floor_amount_usd decimal(12, 2)
   enabled boolean [default: false]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (league_id, season_id) [unique]
   }
@@ -1065,41 +1315,41 @@ Table salary_caps {
 
 // Team colors
 Table team_colors {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   color_name varchar [not null]
   hex_code varchar(7) [not null]
   color_type varchar [default: 'primary']
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Polls
 Table polls {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   created_by_user_id integer [ref: > users.id, not null]
   question varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   poll_type poll_type [default: 'single_choice']
   status poll_status [default: 'active']
   start_date timestamp [default: `now()`]
   end_date timestamp
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table poll_options {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   poll_id integer [ref: > polls.id, not null]
   option_text varchar [not null]
   display_order integer
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table poll_responses {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   poll_id integer [ref: > polls.id, not null]
   poll_option_id integer [ref: > poll_options.id, not null]
   user_id integer [ref: > users.id, not null]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (poll_id, user_id) [unique]
   }
@@ -1107,61 +1357,61 @@ Table poll_responses {
 
 // Registration system
 Table registration_forms {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   form_name varchar [not null]
   form_type varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   fields_config text
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status registration_form_status [default: 'active', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table registration_submissions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   form_id integer [ref: > registration_forms.id, not null]
   user_id integer [ref: > users.id]
   entity_type varchar
   entity_id integer
   form_data text
-  submission_status varchar [default: 'pending']
+  submission_status registration_submission_status [default: 'pending', note: 'display as dropdown']
   submitted_at timestamp [default: `now()`]
   reviewed_by_user_id integer [ref: > users.id]
   reviewed_at timestamp
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table personal_profiles {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   person_id integer [ref: > persons.id]
-  bio text
-  profile_picture_url varchar
-  logo_url varchar
+  bio text [note: 'display as textarea']
+  profile_picture_url varchar(255) [note: \'display as url/image input\']
+  logo_url varchar(255) [note: \'display as url/image input\']
   phone varchar
-  address text
+  address text [note: 'display as textarea']
   city varchar
   country varchar
   public_id varchar [unique]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table player_public_profiles {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   public_id varchar [unique]
   is_public boolean [default: true]
-  bio text
-  profile_picture_url varchar
+  bio text [note: 'display as textarea']
+  profile_picture_url varchar(255) [note: \'display as url/image input\']
   socials_visible boolean [default: true]
   stats_visible boolean [default: true]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table player_privacy_settings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   profile_visibility varchar [default: 'public']
   show_real_name boolean [default: true]
@@ -1171,15 +1421,15 @@ Table player_privacy_settings {
   show_location boolean [default: true]
   allow_fan_messages boolean [default: true]
   opt_out_public_display boolean [default: false]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (player_id) [unique]
   }
 }
 
 Table user_privacy_settings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   profile_visibility varchar [default: 'public']
   show_email boolean [default: false]
@@ -1189,28 +1439,28 @@ Table user_privacy_settings {
   show_activity_status boolean [default: true]
   show_favorite_teams boolean [default: true]
   show_favorite_players boolean [default: true]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (user_id) [unique]
   }
 }
 
 Table user_persons {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   person_id integer [ref: > persons.id, not null]
   relationship_type entity_relationship [not null]
-  status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status varchar [default: 'pending'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (user_id, person_id) [unique]
   }
 }
 
 Table user_permissions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   permission_key varchar [not null]
   resource_type varchar
@@ -1224,7 +1474,7 @@ Table user_permissions {
 
 // Goaltender specific stats
 Table goaltender_stats {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   season_id integer [ref: > seasons.id, not null]
   games_played integer [default: 0]
@@ -1239,7 +1489,7 @@ Table goaltender_stats {
   save_percentage decimal(5, 3)
   goals_against_average decimal(5, 2)
   minutes_played integer [default: 0]
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (player_id, season_id) [unique]
   }
@@ -1247,7 +1497,7 @@ Table goaltender_stats {
 
 // Player performance ratings and analytics
 Table player_ratings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   season_id integer [ref: > seasons.id, not null]
   overall_rating decimal(5, 2)
@@ -1255,33 +1505,33 @@ Table player_ratings {
   defensive_rating decimal(5, 2)
   physical_rating decimal(5, 2)
   skating_rating decimal(5, 2)
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (player_id, season_id) [unique]
   }
 }
 
 Table player_reputation_scores {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   score_type varchar [not null]
   score_value decimal(5, 2)
   review_count integer [default: 0]
-  last_updated_at timestamp
-  created_at timestamp [default: `now()`]
+  last_updated_at timestamp [note: 'readonly']
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (player_id, score_type) [unique]
   }
 }
 
 Table player_rankings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   season_id integer [ref: > seasons.id, not null]
   position_category varchar [not null]
   ranking_value integer
   rank_date date [not null]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (season_id, position_category, rank_date)
   }
@@ -1289,7 +1539,7 @@ Table player_rankings {
 
 // Team performance stats
 Table team_stats {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   games_played integer [default: 0]
@@ -1302,7 +1552,7 @@ Table team_stats {
   power_play_opportunities integer [default: 0]
   penalty_kill_goals integer [default: 0]
   penalty_kill_opportunities integer [default: 0]
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (team_id, season_id) [unique]
   }
@@ -1310,7 +1560,7 @@ Table team_stats {
 
 // Payroll management
 Table payroll_detail {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   contract_id integer [ref: > contracts.id, not null]
@@ -1318,14 +1568,14 @@ Table payroll_detail {
   annual_salary decimal(12, 2)
   bonus decimal(12, 2)
   total_compensation decimal(12, 2)
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (team_id, season_id, contract_id) [unique]
   }
 }
 
 Table player_bonuses {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
@@ -1334,14 +1584,14 @@ Table player_bonuses {
   reason varchar
   earned_date date [not null]
   paid_date date
-  status varchar [default: 'pending']
+  status bonus_status [default: 'pending', note: 'display as dropdown']
   related_contract_id integer [ref: > contracts.id]
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table team_bonuses {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   bonus_type varchar [not null]
@@ -1349,19 +1599,19 @@ Table team_bonuses {
   reason varchar
   earned_date date [not null]
   paid_date date
-  status varchar [default: 'pending']
-  notes text
-  created_at timestamp [default: `now()`]
+  status bonus_status [default: 'pending', note: 'display as dropdown']
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table salary_cap_usage {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   total_committed decimal(12, 2)
   cap_limit decimal(12, 2)
   remaining_space decimal(12, 2)
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (team_id, season_id) [unique]
   }
@@ -1369,12 +1619,12 @@ Table salary_cap_usage {
 
 // Period-by-period scoring
 Table period_scoring {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   period integer [not null]
   home_goals integer [default: 0]
   away_goals integer [default: 0]
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (game_id, period) [unique]
   }
@@ -1382,19 +1632,19 @@ Table period_scoring {
 
 // Game weather conditions
 Table game_weather {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   temperature_fahrenheit decimal(5, 2)
   weather_condition varchar
   wind_speed_mph decimal(5, 2)
   humidity_percent decimal(5, 2)
-  notes text
+  notes text [note: 'display as textarea']
   recorded_at timestamp [default: `now()`]
 }
 
 // Audit and history
 Table audit_logs {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id]
   table_name varchar [not null]
   record_id integer [not null]
@@ -1410,11 +1660,11 @@ Table audit_logs {
 }
 
 Table contract_history {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   contract_id integer [ref: > contracts.id, not null]
   player_id integer [ref: > players.id, not null]
   team_id integer [ref: > teams.id, not null]
-  status varchar [not null]
+  status varchar [not null] [note: 'display as dropdown']
   salary_annual decimal(12, 2)
   start_date date
   end_date date
@@ -1423,40 +1673,40 @@ Table contract_history {
 }
 
 Table trade_history {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   trade_id integer [ref: > trades.id, not null]
   player_id integer [ref: > players.id, not null]
   from_team_id integer [ref: > teams.id, not null]
   to_team_id integer [ref: > teams.id, not null]
-  status varchar [default: 'executed']
+  status varchar [default: 'executed'] [note: 'display as dropdown']
   execution_date timestamp
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table transaction_history {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   transaction_date timestamp [default: `now()`]
   transaction_type varchar [not null]
   player_id integer [ref: > players.id, not null]
   team_id integer [ref: > teams.id]
-  description text
-  notes text
+  description text [note: 'display as textarea']
+  notes text [note: 'display as textarea']
 }
 
 // Playoff structure
 Table playoff_brackets {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   season_id integer [ref: > seasons.id, not null]
   bracket_name varchar [not null]
-  bracket_type varchar [not null]
+  bracket_type bracket_type [not null, note: 'display as dropdown']
   total_teams integer
-  status varchar [default: 'draft']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status bracket_status [default: 'draft', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table playoff_series {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   bracket_id integer [ref: > playoff_brackets.id, not null]
   round integer [not null]
   series_number integer [not null]
@@ -1467,16 +1717,16 @@ Table playoff_series {
   team_1_wins integer [default: 0]
   team_2_wins integer [default: 0]
   series_games integer [default: 7]
-  status varchar [default: 'scheduled']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status series_status [default: 'scheduled', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (bracket_id, round, series_number) [unique]
   }
 }
 
 Table playoff_advancement {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   bracket_id integer [ref: > playoff_brackets.id, not null]
   team_id integer [ref: > teams.id, not null]
   round integer [not null]
@@ -1484,12 +1734,12 @@ Table playoff_advancement {
   advanced boolean [default: false]
   eliminated_by_team_id integer [ref: > teams.id]
   advanced_date date
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Officials and discipline
 Table official_stats {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   official_id integer [ref: > officials.id, not null]
   season_id integer [ref: > seasons.id, not null]
   games_officiated integer [default: 0]
@@ -1497,7 +1747,7 @@ Table official_stats {
   major_penalties integer [default: 0]
   minor_penalties integer [default: 0]
   misconduct_penalties integer [default: 0]
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (official_id, season_id) [unique]
   }
@@ -1844,130 +2094,130 @@ Enum notification_frequency {
 }
 
 Table disciplinary_log {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   action_type disciplinary_action [not null]
   reason varchar [not null]
   action_date date [not null]
-  description text
+  description text [note: 'display as textarea']
   issued_by_official_id integer [ref: > officials.id]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table player_fines {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   fine_amount decimal(10, 2) [not null]
   reason varchar [not null]
   fine_date date [not null]
-  status varchar [default: 'pending']
+  status fine_status [default: 'pending', note: 'display as dropdown']
   paid_date date
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table player_warnings {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   warning_type varchar [not null]
   reason varchar [not null]
   warning_date date [not null]
   issued_by_official_id integer [ref: > officials.id]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Team staff
 Table coaches {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   person_id integer [ref: > persons.id, not null]
   coach_type coach_type [not null]
   license_level varchar
   specialization varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table coach_assignments {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   coach_id integer [ref: > coaches.id, not null]
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   position varchar [not null]
   start_date date [not null]
   end_date date
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
+  status varchar [default: 'active'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (coach_id, team_id, season_id) [unique]
   }
 }
 
 Table trainers {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   person_id integer [ref: > persons.id, not null]
   trainer_type trainer_type [not null]
   certification varchar
   specialization varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table trainer_assignments {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   trainer_id integer [ref: > trainers.id, not null]
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   start_date date [not null]
   end_date date
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
+  status varchar [default: 'active'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (trainer_id, team_id, season_id) [unique]
   }
 }
 
 Table scouts {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   person_id integer [ref: > persons.id, not null]
   scout_level scout_level [not null]
   specialization varchar
   organization_id integer [ref: > organizations.id]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Administrative and league rules
 Table waiver_wire {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   season_id integer [ref: > seasons.id, not null]
   player_id integer [ref: > players.id, not null]
   released_by_team_id integer [ref: > teams.id, not null]
   release_date date [not null]
   recall_date date
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status waiver_status [default: 'active', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table waiver_claims {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   waiver_id integer [ref: > waiver_wire.id, not null]
   claiming_team_id integer [ref: > teams.id, not null]
   claim_date date [not null]
   priority_order integer
-  status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
+  status claim_status [default: 'pending', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table trade_windows {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   season_id integer [ref: > seasons.id, not null]
   window_name varchar [not null]
   start_date date [not null]
   end_date date [not null]
   trading_allowed boolean [default: true]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table broadcast_rights {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id]
   team_id integer [ref: > teams.id]
   broadcaster_name varchar [not null]
@@ -1976,38 +2226,38 @@ Table broadcast_rights {
   end_date date [not null]
   contract_value decimal(12, 2)
   territories varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table league_rules {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   rule_name varchar [unique, not null]
   rule_description text [not null]
   rule_category varchar
   effective_date date
   is_active boolean [default: true]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table promotion_relegation_rules {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   season_id integer [ref: > seasons.id, not null]
   promoted_teams_count integer [default: 0]
   relegated_teams_count integer [default: 0]
   promotion_criteria text
   relegation_criteria text
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (league_id, season_id) [unique]
   }
 }
 
 Table promotion_relegation_history {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   from_division_id integer [ref: > divisions.id]
@@ -2016,11 +2266,11 @@ Table promotion_relegation_history {
   finishing_position integer
   reason text
   executed_date date
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table club_manager_options {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   organization_id integer [ref: > organizations.id, not null]
   user_id integer [ref: > users.id, not null]
   can_manage_teams boolean [default: false]
@@ -2030,7 +2280,7 @@ Table club_manager_options {
   can_manage_sponsorships boolean [default: false]
   can_approve_trades boolean [default: false]
   can_manage_divisions boolean [default: false]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (organization_id, user_id) [unique]
   }
@@ -2038,39 +2288,39 @@ Table club_manager_options {
 
 // Ticketing and seating
 Table tickets {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   section_id integer [ref: > seating_sections.id, not null]
   seat_number varchar [not null]
   ticket_type varchar
   price_usd decimal(10, 2)
-  status varchar [default: 'available']
+  status varchar [default: 'available'] [note: 'display as dropdown']
   purchased_by_user_id integer [ref: > users.id]
   purchase_date timestamp
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (game_id, section_id, seat_number) [unique]
   }
 }
 
 Table seating_sections {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   venue_id integer [ref: > venues.id, not null]
   section_name varchar [not null]
   section_level integer
   capacity integer
   section_type varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table seat_inventory {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   section_id integer [ref: > seating_sections.id, not null]
   game_id integer [ref: > games.id, not null]
   total_seats integer
   available_seats integer
   reserved_seats integer
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (section_id, game_id) [unique]
   }
@@ -2078,7 +2328,7 @@ Table seat_inventory {
 
 // News and announcements
 Table news {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   title varchar [not null]
   content text [not null]
   author_user_id integer [ref: > users.id, not null]
@@ -2088,8 +2338,8 @@ Table news {
   player_id integer [ref: > players.id]
   featured boolean [default: false]
   published_date timestamp [default: `now()`]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (published_date)
     (team_id)
@@ -2098,18 +2348,18 @@ Table news {
 }
 
 Table news_comments {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   news_id integer [ref: > news.id, not null]
   user_id integer [ref: > users.id, not null]
   comment_text text [not null]
   likes integer [default: 0]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 // Fan engagement
 Table fan_engagement {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   engagement_type varchar [not null]
   team_id integer [ref: > teams.id]
@@ -2120,7 +2370,7 @@ Table fan_engagement {
 
 // Team financials
 Table team_financials {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   total_revenue_usd decimal(14, 2) [default: 0]
@@ -2132,36 +2382,36 @@ Table team_financials {
   broadcast_revenue_usd decimal(14, 2) [default: 0]
   payroll_expenses_usd decimal(14, 2) [default: 0]
   arena_operating_expenses_usd decimal(14, 2) [default: 0]
-  updated_at timestamp
+  updated_at timestamp [note: 'readonly']
   indexes {
     (team_id, season_id) [unique]
   }
 }
 
 Table financial_transactions {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   transaction_type varchar [not null]
   category varchar [not null]
   amount_usd decimal(14, 2) [not null]
-  description text
+  description text [note: 'display as textarea']
   transaction_date date [not null]
   related_entity_type varchar
   related_entity_id integer
   recorded_by_user_id integer [ref: > users.id]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table financial_reports {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   report_type varchar [not null]
   report_date date [not null]
   summary text
-  file_url varchar
+  file_url varchar(255) [note: \'display as url/image input\']
   created_by_user_id integer [ref: > users.id, not null]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (team_id, season_id, report_type) [unique]
   }
@@ -2169,7 +2419,7 @@ Table financial_reports {
 
 // Carpool and travel
 Table carpools {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   created_by_user_id integer [ref: > users.id, not null]
   destination varchar [not null]
   event_id integer [ref: > events.id]
@@ -2179,26 +2429,26 @@ Table carpools {
   estimated_arrival_time time
   vehicle_id integer [ref: > carpool_vehicles.id]
   max_capacity integer
-  status varchar [default: 'open']
-  notes text
-  created_at timestamp [default: `now()`]
+  status carpool_status [default: 'open', note: 'display as dropdown']
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table carpool_participants {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   carpool_id integer [ref: > carpools.id, not null]
   user_id integer [ref: > users.id, not null]
   is_driver boolean [default: false]
   pickup_location varchar
-  status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
+  status carpool_participant_status [default: 'pending', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (carpool_id, user_id) [unique]
   }
 }
 
 Table carpool_vehicles {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   vehicle_type varchar [not null]
   make varchar
@@ -2206,13 +2456,13 @@ Table carpool_vehicles {
   year integer
   license_plate varchar
   seats_available integer
-  description text
-  created_at timestamp [default: `now()`]
+  description text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Player development and progression
 Table player_development_plans {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   season_id integer [ref: > seasons.id, not null]
   coach_id integer [ref: > coaches.id]
@@ -2221,24 +2471,24 @@ Table player_development_plans {
   goals text
   start_date date [not null]
   end_date date
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status varchar [default: 'active'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table skill_assessments {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   assessor_user_id integer [ref: > users.id, not null]
   assessment_date date [not null]
   skill_category varchar [not null]
   score integer [check: `score >= 0 AND score <= 100`]
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table player_milestones {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   contract_id integer [ref: > contracts.id]
   milestone_type varchar [not null]
@@ -2246,12 +2496,12 @@ Table player_milestones {
   target_date date
   achievement_date date
   incentive_amount_usd decimal(12, 2)
-  status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
+  status milestone_status [default: 'pending', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table team_milestones {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id]
   milestone_type varchar [not null]
@@ -2260,12 +2510,12 @@ Table team_milestones {
   achievement_date date
   milestone_category varchar
   reward_amount_usd decimal(12, 2)
-  status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
+  status milestone_status [default: 'pending', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table league_milestones {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   season_id integer [ref: > seasons.id]
   milestone_type varchar [not null]
@@ -2274,25 +2524,25 @@ Table league_milestones {
   achievement_date date
   milestone_category varchar
   significance_level varchar
-  notes text
-  status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  status milestone_status [default: 'pending', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table player_progression_history {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   season_id integer [ref: > seasons.id, not null]
   recorded_date date [not null]
   position_change varchar
   potential_rating decimal(5, 2)
-  performance_notes text
-  created_at timestamp [default: `now()`]
+  performance_notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Official management enhancements
 Table official_assignments {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   official_id integer [ref: > officials.id, not null]
   league_id integer [ref: > leagues.id, not null]
   assignment_date date [not null]
@@ -2301,11 +2551,11 @@ Table official_assignments {
   event_type varchar
   location varchar
   status official_assignment_status [default: 'scheduled']
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table official_performance_feedback {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   official_id integer [ref: > officials.id, not null]
   game_id integer [ref: > games.id, not null]
   feedback_provider_user_id integer [ref: > users.id, not null]
@@ -2313,25 +2563,25 @@ Table official_performance_feedback {
   fairness_rating integer [check: `fairness_rating >= 1 AND fairness_rating <= 5`]
   consistency_rating integer [check: `consistency_rating >= 1 AND consistency_rating <= 5`]
   communication_rating integer [check: `communication_rating >= 1 AND communication_rating <= 5`]
-  comments text
-  created_at timestamp [default: `now()`]
+  comments text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table official_certification_renewals {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   official_id integer [ref: > officials.id, not null]
   renewal_date date [not null]
   certification_type varchar [not null]
   expiry_date date [not null]
   training_completed boolean [default: false]
   renewal_status certification_status [default: 'pending']
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // League financial rules
 Table salary_cap_penalties {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   penalty_type varchar [not null]
@@ -2339,27 +2589,27 @@ Table salary_cap_penalties {
   reason text [not null]
   issued_date date [not null]
   paid_date date
-  status varchar [default: 'pending']
-  notes text
-  created_at timestamp [default: `now()`]
+  status varchar [default: 'pending'] [note: 'display as dropdown']
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table revenue_sharing_agreements {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   season_id integer [ref: > seasons.id, not null]
   agreement_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   revenue_pool_usd decimal(14, 2)
   distribution_formula text
   start_date date
   end_date date
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
+  status varchar [default: 'active'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table luxury_tax_calculations {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   league_id integer [ref: > leagues.id, not null]
   season_id integer [ref: > seasons.id, not null]
   team_id integer [ref: > teams.id, not null]
@@ -2369,8 +2619,8 @@ Table luxury_tax_calculations {
   tax_rate_percent decimal(5, 2)
   tax_owed_usd decimal(14, 2)
   tax_paid_usd decimal(14, 2)
-  status varchar [default: 'calculated']
-  updated_at timestamp
+  status varchar [default: 'calculated'] [note: 'display as dropdown']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (league_id, season_id, team_id) [unique]
   }
@@ -2378,10 +2628,10 @@ Table luxury_tax_calculations {
 
 // Youth and development programs
 Table development_camps {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   organization_id integer [ref: > organizations.id]
   camp_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   camp_type varchar [not null]
   start_date date [not null]
   end_date date [not null]
@@ -2390,37 +2640,37 @@ Table development_camps {
   age_group varchar
   skill_level varchar
   director_user_id integer [ref: > users.id]
-  status varchar [default: 'scheduled']
-  created_at timestamp [default: `now()`]
+  status camp_status [default: 'scheduled', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table development_camp_registrations {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   camp_id integer [ref: > development_camps.id, not null]
   participant_person_id integer [ref: > persons.id, not null]
   registration_date date [not null]
-  status varchar [default: 'registered']
+  status camp_registration_status [default: 'registered', note: 'display as dropdown']
   attendance_status varchar
-  performance_notes text
-  created_at timestamp [default: `now()`]
+  performance_notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table development_squad_rosters {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   season_id integer [ref: > seasons.id, not null]
   squad_type varchar [not null]
   squad_level varchar [default: 'u20']
   player_id integer [ref: > players.id, not null]
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
+  status varchar [default: 'active'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (team_id, season_id, player_id) [unique]
   }
 }
 
 Table player_development_reports {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   reporting_period_start date [not null]
   reporting_period_end date [not null]
@@ -2430,36 +2680,36 @@ Table player_development_reports {
   areas_for_improvement text
   recommendations text
   next_steps text
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Game mechanics and detailed scoring
 Table game_timeouts {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   period integer [not null]
   time_in_period varchar [not null]
   team_id integer [ref: > teams.id, not null]
   timeout_type varchar [default: 'standard']
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table challenge_reviews {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   challenging_team_id integer [ref: > teams.id, not null]
   period integer [not null]
   time_in_period varchar [not null]
   challenge_type varchar [not null]
-  event_description text
+  event_description text [note: 'display as textarea']
   review_outcome varchar
   official_id integer [ref: > officials.id]
   reviewed_at timestamp
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table play_by_play_log {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   sequence_number integer [not null]
   period integer [not null]
@@ -2469,14 +2719,14 @@ Table play_by_play_log {
   team_id integer [ref: > teams.id]
   description text [not null]
   result varchar
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (game_id, sequence_number) [unique]
   }
 }
 
 Table shot_charts {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   game_id integer [ref: > games.id, not null]
   player_id integer [ref: > players.id, not null]
   team_id integer [ref: > teams.id, not null]
@@ -2487,83 +2737,83 @@ Table shot_charts {
   shot_type varchar [not null]
   result varchar [default: 'miss']
   distance_from_goal_feet decimal(5, 2)
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Injury prevention and return-to-play
 Table return_to_play_protocols {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   injury_type varchar [not null]
   protocol_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   stages_count integer [default: 0]
   estimated_days_total integer
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table return_to_play_stages {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   protocol_id integer [ref: > return_to_play_protocols.id, not null]
   stage_number integer [not null]
   stage_name varchar [not null]
   activities text
   duration_days integer
   clearance_required boolean [default: false]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table clearance_sign_offs {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   protocol_id integer [ref: > return_to_play_protocols.id, not null]
   stage_number integer [not null]
   medical_staff_user_id integer [ref: > users.id, not null]
   clearance_date date [not null]
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table injury_prevention_programs {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   program_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   program_type varchar [not null]
   start_date date [not null]
   end_date date
   coordinator_user_id integer [ref: > users.id]
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
+  status varchar [default: 'active'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Sponsorship and partnership details
 Table sponsorship_deliverables {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   sponsorship_id integer [ref: > team_sponsors.id, not null]
   deliverable_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   deliverable_type varchar [not null]
   quantity integer
   delivery_date date
-  status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
+  status deliverable_status [default: 'pending', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table partnership_performance_metrics {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   sponsorship_id integer [ref: > team_sponsors.id, not null]
   metric_name varchar [not null]
   metric_type varchar [not null]
   target_value decimal(14, 2)
   actual_value decimal(14, 2)
   measurement_date date
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table partnership_disputes {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   sponsorship_id integer [ref: > team_sponsors.id, not null]
   dispute_date date [not null]
   dispute_type dispute_type [not null]
@@ -2572,13 +2822,13 @@ Table partnership_disputes {
   resolution_status dispute_status [default: 'open']
   resolution_date date
   resolved_amount_usd decimal(12, 2)
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Fan monetization
 Table premium_memberships {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   team_id integer [ref: > teams.id]
   membership_tier varchar [not null]
@@ -2586,29 +2836,29 @@ Table premium_memberships {
   end_date date
   annual_fee_usd decimal(12, 2)
   benefits text
-  status varchar [default: 'active']
+  status membership_status [default: 'active', note: 'display as dropdown']
   auto_renew boolean [default: true]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table donation_campaigns {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   organization_id integer [ref: > organizations.id]
   team_id integer [ref: > teams.id]
   campaign_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   campaign_type varchar [not null]
   goal_amount_usd decimal(12, 2) [not null]
   raised_amount_usd decimal(12, 2) [default: 0]
   start_date date [not null]
   end_date date [not null]
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
+  status campaign_status [default: 'active', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table donations {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   campaign_id integer [ref: > donation_campaigns.id, not null]
   donor_user_id integer [ref: > users.id, not null]
   donation_amount_usd decimal(12, 2) [not null]
@@ -2616,18 +2866,18 @@ Table donations {
   donation_method varchar
   anonymous boolean [default: false]
   tax_deductible boolean [default: false]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table merchandise_waitlists {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   product_id integer [ref: > storefront_products.id, not null]
   user_id integer [ref: > users.id, not null]
   waitlist_position integer
   email_notification_sent boolean [default: false]
   notification_sent_at timestamp
-  status varchar [default: 'waiting']
-  created_at timestamp [default: `now()`]
+  status waitlist_status [default: 'waiting', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (product_id, user_id) [unique]
   }
@@ -2635,35 +2885,35 @@ Table merchandise_waitlists {
 
 // Reviews and ratings
 Table user_reviews {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   reviewer_user_id integer [ref: > users.id, not null]
   target_type varchar [not null]
   target_id integer [not null]
   rating_score integer [not null]
   review_text text
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (reviewer_user_id, target_type, target_id) [unique]
   }
 }
 
 Table player_reviews {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   reviewer_user_id integer [ref: > users.id, not null]
   rating_score integer [check: `rating_score >= 1 AND rating_score <= 5`]
   review_text text
   helpful_count integer [default: 0]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (player_id, reviewer_user_id) [unique]
   }
 }
 
 Table user_favorites {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   favorite_type varchar [not null]
   favorite_id integer [not null]
@@ -2675,7 +2925,7 @@ Table user_favorites {
 }
 
 Table search_history {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   search_query varchar [not null]
   search_type varchar
@@ -2684,7 +2934,7 @@ Table search_history {
 }
 
 Table user_social_posts {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   post_text text [not null]
   images text
@@ -2695,39 +2945,39 @@ Table user_social_posts {
   visibility varchar [default: 'public']
   like_count integer [default: 0]
   comment_count integer [default: 0]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table social_post_comments {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   post_id integer [ref: > user_social_posts.id, not null]
   user_id integer [ref: > users.id, not null]
   comment_text text [not null]
   like_count integer [default: 0]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table social_post_likes {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   post_id integer [ref: > user_social_posts.id, not null]
   user_id integer [ref: > users.id, not null]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (post_id, user_id) [unique]
   }
 }
 
 Table merchandise_reviews {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   product_id integer [ref: > storefront_products.id, not null]
   reviewer_user_id integer [ref: > users.id, not null]
   rating_score integer [not null]
   review_text text
   helpful_count integer [default: 0]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (product_id, reviewer_user_id) [unique]
   }
@@ -2735,27 +2985,27 @@ Table merchandise_reviews {
 
 // Community and fan management
 Table fan_clubs {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   team_id integer [ref: > teams.id]
   player_id integer [ref: > players.id]
   founder_user_id integer [ref: > users.id, not null]
-  logo_url varchar
+  logo_url varchar(255) [note: \'display as url/image input\']
   member_count integer [default: 0]
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
+  status fan_club_status [default: 'active', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table fan_club_memberships {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   fan_club_id integer [ref: > fan_clubs.id, not null]
   user_id integer [ref: > users.id, not null]
   tier fan_club_tier [default: 'standard']
   benefits text
   joined_date date [not null]
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
+  status membership_status [default: 'active', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (fan_club_id, user_id) [unique]
   }
@@ -2763,14 +3013,14 @@ Table fan_club_memberships {
 
 // User notification preferences
 Table user_notification_preferences {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   user_id integer [ref: > users.id, not null]
   notification_type varchar [not null]
   channel notification_channel [not null]
   enabled boolean [default: true]
   frequency notification_frequency [default: 'immediately']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (user_id, notification_type, channel) [unique]
   }
@@ -2778,7 +3028,7 @@ Table user_notification_preferences {
 
 // Venue accessibility
 Table venue_accessibility {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   venue_id integer [ref: > venues.id, not null]
   wheelchair_accessible boolean [default: false]
   accessible_parking_spaces integer
@@ -2787,8 +3037,8 @@ Table venue_accessibility {
   transit_options text
   accessible_seating_sections text
   features accessibility_feature
-  notes text
-  updated_at timestamp
+  notes text [note: 'display as textarea']
+  updated_at timestamp [note: 'readonly']
   indexes {
     (venue_id) [unique]
   }
@@ -2796,48 +3046,48 @@ Table venue_accessibility {
 
 // Player health and medical
 Table player_medical_records {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   record_type medical_record_type [not null]
   description text [not null]
   record_date date [not null]
   medical_provider varchar
   confidential boolean [default: true]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table doping_tests {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   player_id integer [ref: > players.id, not null]
   test_date date [not null]
   test_type doping_test_type [not null]
   testing_authority varchar
   result doping_result [default: 'pending']
   test_details text
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table background_checks {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   person_id integer [ref: > persons.id, not null]
   check_type varchar [not null]
   check_date date [not null]
   checking_authority varchar
   result check_result [default: 'pending']
   expiry_date date
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 // Content and media
 Table video_highlights {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   title varchar [not null]
-  description text
-  video_url varchar [not null]
-  thumbnail_url varchar
+  description text [note: 'display as textarea']
+  video_url varchar(255) [not null, note: \'display as url/image input\']
+  thumbnail_url varchar(255) [note: \'display as url/image input\']
   duration_seconds integer
   game_id integer [ref: > games.id]
   player_id integer [ref: > players.id]
@@ -2846,65 +3096,65 @@ Table video_highlights {
   views integer [default: 0]
   created_by_user_id integer [ref: > users.id, not null]
   published_date timestamp [default: `now()`]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table streaming_events {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   game_id integer [ref: > games.id]
   event_id integer [ref: > events.id]
-  stream_url varchar [not null]
+  stream_url varchar(255) [not null, note: \'display as url/image input\']
   platform streaming_platform
   scheduled_start_time timestamp
   actual_start_time timestamp
   actual_end_time timestamp
   viewer_count integer [default: 0]
-  status stream_status [default: 'scheduled']
+  status stream_status [default: 'scheduled', note: 'display as dropdown']
   created_by_user_id integer [ref: > users.id, not null]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table content_moderation {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   content_type varchar [not null]
   content_id integer [not null]
   flagged_by_user_id integer [ref: > users.id]
   reason varchar [not null]
   status content_moderation_status [default: 'pending']
   reviewed_by_user_id integer [ref: > users.id]
-  moderation_notes text
+  moderation_notes text [note: 'display as textarea']
   action_taken moderation_action
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   reviewed_at timestamp
 }
 
 // Practice and training
 Table practice_drills {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   drill_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   duration_minutes integer
   difficulty_level varchar [default: 'intermediate']
   equipment_needed text
   created_by_user_id integer [ref: > users.id, not null]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table practice_drill_templates {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   drill_id integer [ref: > practice_drills.id, not null]
   practice_id integer [ref: > practices.id, not null]
   order_in_practice integer
-  notes text
-  created_at timestamp [default: `now()`]
+  notes text [note: 'display as textarea']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table team_equipment_inventory {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   equipment_type varchar [not null]
   brand varchar
@@ -2913,40 +3163,40 @@ Table team_equipment_inventory {
   quantity_available integer [default: 0]
   last_inventory_date date
   storage_location varchar
-  notes text
-  updated_at timestamp
+  notes text [note: 'display as textarea']
+  updated_at timestamp [note: 'readonly']
 }
 
 // Team communication
 Table team_communication_channels {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   team_id integer [ref: > teams.id, not null]
   channel_name varchar [not null]
-  channel_type varchar [not null]
-  description text
+  channel_type channel_type [not null, note: 'display as dropdown']
+  description text [note: 'display as textarea']
   created_by_user_id integer [ref: > users.id, not null]
-  status varchar [default: 'active']
-  created_at timestamp [default: `now()`]
+  status channel_status [default: 'active', note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table team_messages {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   channel_id integer [ref: > team_communication_channels.id, not null]
   sender_user_id integer [ref: > users.id, not null]
   message_text text [not null]
   attachments text
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table user_direct_messages {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   sender_user_id integer [ref: > users.id, not null]
   recipient_user_id integer [ref: > users.id, not null]
   message_text text [not null]
   attachments text
   is_read boolean [default: false]
   read_at timestamp
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (sender_user_id, recipient_user_id)
   }
@@ -2954,40 +3204,40 @@ Table user_direct_messages {
 
 // Analytics and comparisons
 Table player_comparisons {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   comparison_name varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   primary_player_id integer [ref: > players.id, not null]
   season_id integer [ref: > seasons.id, not null]
   comparison_metrics text
   created_by_user_id integer [ref: > users.id, not null]
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table player_comparison_results {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   comparison_id integer [ref: > player_comparisons.id, not null]
   compared_player_id integer [ref: > players.id, not null]
   similarity_score decimal(5, 2)
   analysis_summary text
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
 }
 
 Table predictive_analytics_models {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   model_name varchar [not null]
   model_type varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   target_metric varchar
-  status varchar [default: 'draft']
+  status model_status [default: 'draft', note: 'display as dropdown']
   accuracy_score decimal(5, 2)
   created_by_user_id integer [ref: > users.id, not null]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table predictive_analytics_results {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   model_id integer [ref: > predictive_analytics_models.id, not null]
   player_id integer [ref: > players.id]
   team_id integer [ref: > teams.id]
@@ -2999,9 +3249,9 @@ Table predictive_analytics_results {
 
 // Unified calendar
 Table calendar_events {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   title varchar [not null]
-  description text
+  description text [note: 'display as textarea']
   event_type varchar [not null]
   event_date timestamp [not null]
   end_time timestamp
@@ -3012,17 +3262,17 @@ Table calendar_events {
   practice_id integer [ref: > practices.id]
   generic_event_id integer [ref: > events.id]
   recurrence_pattern varchar
-  status varchar [default: 'scheduled']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
+  status varchar [default: 'scheduled'] [note: 'display as dropdown']
+  created_at timestamp [default: `now()`, note: 'readonly']
+  updated_at timestamp [note: 'readonly']
 }
 
 Table calendar_attendees {
-  id integer [pk, increment]
+  id integer [pk, increment, note: 'readonly']
   calendar_event_id integer [ref: > calendar_events.id, not null]
   user_id integer [ref: > users.id, not null]
   attendance_status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]
+  created_at timestamp [default: `now()`, note: 'readonly']
   indexes {
     (calendar_event_id, user_id) [unique]
   }
@@ -3371,6 +3621,51 @@ TableGroup "Fan Monetization" [color: #8E44AD] {
   merchandise_waitlists
 }
 
-DiagramView "All tables" {
-  *
+DiagramView "Auth & Onboarding" {
+  users
+  roles
+  user_permissions
+  persons
+  personal_profiles
+}
+
+DiagramView "Organization & Teams" {
+  organizations
+  leagues
+  seasons
+  divisions
+  teams
+  management
+  farm_teams
+}
+
+DiagramView "Player & Roster Management" {
+  players
+  rosters
+  contracts
+  free_agency
+  injuries
+  suspensions
+  trades
+}
+
+DiagramView "Game Operations & Live Scoring" {
+  games
+  game_setup
+  game_settings
+  game_events
+  live_game_scoring
+  play_by_play_log
+  officials
+  game_officials
+}
+
+DiagramView "E-Commerce & Merchandise" {
+  team_storefronts
+  storefront_products
+  storefront_orders
+  storefront_order_items
+  equipment_marketplace
+  warehouses
+  shipments
 }
