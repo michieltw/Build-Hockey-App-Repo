@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDatabaseSync, loadDatabase, saveDatabase, switchUserRole, resetDatabase, createPerson, updateTheme, updateCurrentUser } from './services';
+import { getDatabaseSync, saveDatabase, switchUserRole, resetDatabase, createPerson, updateTheme, updateCurrentUser } from './services';
 import { AppDatabase, UserRole, Person } from './types';
 import { SplashScreen } from './components/SplashScreen';
 import { Header } from './components/Header';
@@ -20,11 +20,6 @@ export default function App() {
   });
   const [isFading, setIsFading] = useState<boolean>(false);
   const [fadePhase, setFadePhase] = useState<'idle' | 'in' | 'out'>('idle');
-
-  // Hydrate from Supabase on mount
-  useEffect(() => {
-    loadDatabase().then(updatedDb => setDb(updatedDb));
-  }, []);
 
   // Synchronize system themes from DB updates if any
   useEffect(() => {
