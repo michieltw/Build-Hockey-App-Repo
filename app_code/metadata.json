@@ -1,6 +1,8 @@
 {
-  "name": "Blackout Hockey",
-  "description": "A dark-themed tactical hockey scorekeeper and pre-game setup application.",
+  "name": "Remix Multi-League Ice Hockey Manager",
+  "description": "An interactive multi-role multi-league ice hockey manager application supporting players, managers, league officers, and equipment management.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
