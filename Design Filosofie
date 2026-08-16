@@ -1,0 +1,20 @@
+Algemene Design Filosofie
+Het design is een strakke, moderne en data-gedreven "dashboard" interface. Het focust op hoge leesbaarheid, een cleane structuur en het vermijden van zware visuele ruis. Details zitten in perfecte uitlijning, subtiele contrasten en het functioneel gebruik van kleur.
+1. Kleurensysteem & Thematiek
+Basis / Neutrals: Het gehele thema is gebouwd rondom het Tailwind slate palet.
+Achtergronden: De app-achtergrond is een zeer lichte of witte tint. Containers en kaarten gebruiken altijd bg-white.
+Tekstkleuren: Primaire tekst en headers gebruiken text-slate-900 voor een zacht maar hoog contrast. Secundaire tekst, beschrijvingen en kleine labels gebruiken text-slate-400 of text-slate-500.
+Accentkleuren (Semantisch): Felle kleuren worden extreem spaarzaam gebruikt, uitsluitend om data of statussen te highlighten. Dit gebeurt vaak in een "soft" variant: een hele lichte achtergrond met donkerdere tekst (bijv. bg-emerald-50 text-emerald-700 voor positieve/actieve statussen, of de rose variant voor negatieve/inactieve statussen). Belangrijke data-kolommen of highlights krijgen een zachte blauwe tint (bg-blue-50/70 text-blue-800).
+2. Typografie & Leesbaarheid
+Koppen (Headers): Strak, modern en compact. Vaak font-extrabold of font-bold met een negatieve letterafstand (tracking-tight) in text-slate-900.
+Sub-labels & Kolomkoppen: Ontworpen voor een analytische look. Erg klein (text-[10px] of text-xs), in hoofdletters (uppercase), met extra letterafstand (tracking-wider) en een grijze kleur (text-slate-400).
+Datapunten / Cijfers: Alle numerieke waarden of cellen die onder elkaar staan, maken strikt gebruik van de class tabular-nums. Dit forceert monospaced cijfers, zodat ze verticaal wiskundig perfect uitlijnen.
+3. Layout, Kaarten & Borders
+Containers (Kaarten): Elementen worden gegroepeerd in witte kaarten met afgeronde hoeken (bijv. rounded-2xl of rounded-xl).
+Schaduwen & Borders: Het design gebruikt vrijwel geen zware schaduwen. Diepte wordt gecreëerd met extreem subtiele schaduwen (shadow-xs of shadow-sm) gecombineerd met lichte, haarscherpe randen (border border-slate-200). Binnenin componenten worden vaak subtiele verdelers gebruikt (border-b border-slate-100).
+Spacing: Consistente en ademende verticale ritmes via layout-classes zoals space-y-4 of space-y-5. Componenten hebben royale interne padding (bijv. p-4 of p-5).
+4. Component Patronen
+Navigatie Tabs: Gebaseerd op bodem-randen. Een actieve tab is herkenbaar aan een dikke, donkere rand aan de onderkant (border-b-2 border-slate-900 text-slate-900), terwijl inactieve tabs een transparante rand hebben met een hover-effect (border-transparent text-slate-500 hover:text-slate-700).
+Avatars / Placeholders: Cirkelvormig (rounded-full), met gecentreerde dikgedrukte initialen en een lichte border. Ontworpen om visueel in balans te blijven, ongeacht of er een afbeelding inlaadt of niet.
+Inverted / High-Emphasis Blocks: Voor onderdelen die direct de aandacht van de gebruiker moeten trekken (zoals een systeemstatus of waarschuwingsbanner), wordt het kleurenschema omgedraaid: een donkere achtergrond (bg-slate-900) met lichte tekst (text-white).
+Transities: Alles laadt soepel en zacht in, vaak met globale inlaad-animaties zoals animate-in fade-in duration-300.
