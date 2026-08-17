@@ -1,5 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "./layouts/MainLayout";
+import { Organizations } from "./pages/Organizations";
+import { Teams } from "./pages/Teams";
+import { Seasons } from "./pages/Seasons";
+import { Persons } from "./pages/Persons";
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -16,10 +20,10 @@ function App() {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<PlaceholderPage title="Dashboard Overview" />} />
-          <Route path="organizations" element={<PlaceholderPage title="Organizations" />} />
-          <Route path="teams" element={<PlaceholderPage title="Teams" />} />
-          <Route path="persons" element={<PlaceholderPage title="Persons" />} />
-          <Route path="seasons" element={<PlaceholderPage title="Seasons" />} />
+          <Route path="organizations" element={<Organizations />} />
+          <Route path="teams" element={<Teams />} />
+          <Route path="persons" element={<Persons />} />
+          <Route path="seasons" element={<Seasons />} />
           <Route path="settings" element={<PlaceholderPage title="Settings" />} />
         </Route>
       </Routes>
