@@ -8,6 +8,7 @@ import { Rosters } from "./pages/Rosters";
 import { Players } from "./pages/Players";
 import { Equipment } from "./pages/Equipment";
 import { Lineups } from "./pages/Lineups";
+import { Games } from "./pages/Games";
 import { fetchTableData } from "./services/api";
 import { useState } from "react";
 
@@ -79,6 +80,7 @@ function App() {
           <Route path="lineups" element={<Lineups />} />
           <Route path="persons" element={<Persons />} />
           <Route path="seasons" element={<Seasons />} />
+          <Route path="games" element={<Games />} />
           <Route path="settings" element={<PlaceholderPage title="Settings" />} />
         </Route>
       </Routes>

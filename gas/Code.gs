@@ -1,10 +1,10 @@
 /**
  * Google Apps Script for ICE HOCKEY LEAGUE MANAGER
- * Current Phase: Phase 1
- * Objective: Set up the foundational GAS file for core Phase 1 tables.
+ * Current Phase: Phase 3
+ * Objective: Set up the foundational GAS file for core Phase 1, Phase 2, and Phase 3 (Games & Live Events) tables.
  */
 
-// Define Schema Headers for all Phase 1 tables
+// Define Schema Headers for tables
 const SCHEMA = {
   organizations: [
     'id', 'name', 'league_name', 'location', 'country', 'province_state',
@@ -66,6 +66,35 @@ const SCHEMA = {
   ],
   team_season_rosters: [
     'id', 'team_id', 'season_id', 'player_count', 'roster_status', 'updated_at'
+  ],
+  games: [
+    'id', 'season_id', 'division_id', 'home_team_id', 'away_team_id', 'venue_id',
+    'scheduled_time', 'status', 'home_goals', 'away_goals', 'game_type',
+    'overtime_period', 'is_shootout', 'shootout_home_goals', 'shootout_away_goals',
+    'game_duration_minutes', 'created_at', 'updated_at'
+  ],
+  game_approvals: [
+    'id', 'game_id', 'approved_by', 'approval_status', 'approval_date', 'notes',
+    'created_at', 'updated_at'
+  ],
+  game_events: [
+    'id', 'game_id', 'event_type', 'period', 'time_in_period', 'team_id',
+    'player_id', 'assist_player_id', 'second_assist_player_id', 'x_coordinate',
+    'y_coordinate', 'penalty_type', 'penalty_duration', 'is_confirmed',
+    'video_review_used', 'description', 'created_at'
+  ],
+  game_periods: [
+    'id', 'game_id', 'period_number', 'start_time', 'end_time', 'duration_minutes',
+    'home_goals_in_period', 'away_goals_in_period', 'created_at'
+  ],
+  game_attendance: [
+    'id', 'game_id', 'paid_count', 'free_count', 'total_attendance',
+    'capacity_utilization_percent', 'recorded_by', 'created_at', 'updated_at'
+  ],
+  penalty_box_events: [
+    'id', 'game_id', 'player_id', 'team_id', 'period', 'time_in_period',
+    'box_entry_time', 'box_exit_time', 'duration_minutes', 'penalty_event_id',
+    'created_at'
   ]
 };
 
