@@ -1,0 +1,1397 @@
+// ============================================================================
+// ICE HOCKEY LEAGUE MANAGER SCHEMA
+// ============================================================================
+// Core: users, persons, organizations, roles
+// League structure: seasons, divisions, teams
+// People: players, rosters, lineups, equipment
+// Games & Events: games, game events (live), venues, standings
+// Statistics & Achievements: player stats, team stats, achievements, milestones
+// Admin: waivers, transfers, draft, RSVP events
+// Integrations: Google Apps Script, Shopify, settings
+
+// ============================================================================
+// CORE: Users, Persons, Organizations
+// ============================================================================
+
+Table persons {
+  id integer [pk, increment]
+  first_name varchar [not null]
+  last_name varchar [not null]
+  date_of_birth date
+  email varchar [unique]
+  phone varchar
+  handedness handedness
+  profile_photo_url varchar
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Base person record; used by users and players'
+}
+
+Table roles {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  name varchar [not null]
+  description text
+  permissions text
+  is_custom boolean [default: false]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (organization_id, name) [unique]
+  }
+  Note: 'Configurable user roles per organization'
+}
+
+Table user_accounts {
+  id integer [pk, increment]
+  person_id integer [not null, ref: > persons.id]
+  username varchar [unique, not null]
+  email varchar [unique, not null]
+  password_hash varchar [not null]
+  role_id integer [not null, ref: > roles.id]
+  preferred_organization_id integer [ref: > organizations.id]
+  is_active boolean [default: true]
+  last_login timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'User login and access control'
+}
+
+Enum approval_status {
+  pending
+  approved
+  rejected
+}
+
+Table user_profiles {
+  id integer [pk, increment]
+  user_id integer [not null, unique, ref: > user_accounts.id]
+  bio text
+  profile_picture_url varchar
+  phone_number varchar
+  preferred_language varchar [default: 'en']
+  timezone varchar [default: 'UTC']
+  notifications_enabled boolean [default: true]
+  created_at timestamp [default: `now()`]
+}
+
+Table organizations {
+  id integer [pk, increment]
+  name varchar [not null]
+  league_name varchar
+  location varchar
+  country varchar
+  province_state varchar
+  logo_url varchar
+  website varchar
+  contact_email varchar
+  contact_phone varchar
+  is_active boolean [default: true]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+Table brands {
+  id integer [pk, increment]
+  name varchar [not null, unique]
+  logo_url varchar
+  website varchar
+  created_at timestamp [default: `now()`]
+}
+
+Table retailers {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  name varchar [not null]
+  logo_url varchar
+  website varchar
+  contact_email varchar
+  contact_phone varchar
+  address varchar
+  city varchar
+  province_state varchar
+  country varchar
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Retail partners for equipment and merchandise'
+}
+
+Table sponsors {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  brand_id integer [ref: > brands.id]
+  name varchar [not null]
+  logo_url varchar
+  website varchar
+  sponsorship_level sponsorship_level
+  start_date date
+  end_date date
+  created_at timestamp [default: `now()`]
+}
+
+// ============================================================================
+// LEAGUE STRUCTURE: Seasons, Divisions, Teams
+// ============================================================================
+
+Enum handedness {
+  left
+  right
+  ambidextrous
+}
+
+Enum player_position {
+  forward
+  defense
+  goalie
+}
+
+Enum equipment_type {
+  stick
+  helmet
+  gloves
+  pads
+  skates
+  jersey
+  pants
+  shoulder_pads
+  shin_guards
+  other
+}
+
+Enum equipment_condition {
+  excellent
+  good
+  fair
+  poor
+}
+
+Enum division_level {
+  house_league
+  rep
+  select
+  elite
+}
+
+Enum skill_level {
+  beginner
+  intermediate
+  advanced
+  elite
+}
+
+Enum sponsorship_level {
+  platinum
+  gold
+  silver
+  bronze
+}
+
+Enum game_type {
+  regular
+  playoff
+  preseason
+  exhibition
+}
+
+Enum penalty_type {
+  hooking
+  tripping
+  slashing
+  high_sticking
+  elbowing
+  charging
+  cross_checking
+  holding
+  interference
+  roughing
+  unsportsmanlike_conduct
+  delay_of_game
+  boarding
+  illegal_check_to_head
+  spearing
+  other
+}
+
+Enum transfer_type {
+  trade
+  waiver
+  promotion
+  demotion
+}
+
+Enum milestone_type {
+  goals
+  assists
+  games_played
+  shutouts
+  hat_trick
+  points
+}
+
+Enum loan_reason {
+  development
+  injury_replacement
+  depth
+  skill_building
+  other
+}
+
+Enum season_status {
+  planning
+  active
+  completed
+  cancelled
+}
+
+Table seasons {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  name varchar [not null]
+  year integer [not null]
+  status season_status [default: 'planning']
+  start_date date
+  end_date date
+  registration_deadline date
+  league_rules_version varchar
+  logo_url varchar
+  color_scheme varchar
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+Table divisions {
+  id integer [pk, increment]
+  season_id integer [not null, ref: > seasons.id]
+  name varchar [not null]
+  level division_level
+  age_group varchar
+  skill_level skill_level
+  max_teams integer
+  playoff_format varchar
+  logo_url varchar
+  banner_url varchar
+  created_at timestamp [default: `now()`]
+}
+
+Enum team_status {
+  active
+  inactive
+  disbanded
+}
+
+Table teams {
+  id integer [pk, increment]
+  division_id integer [not null, ref: > divisions.id]
+  name varchar [not null]
+  abbreviation varchar
+  logo_url varchar
+  home_color varchar
+  away_color varchar
+  practice_venue_id integer [ref: > venues.id]
+  practice_schedule text
+  status team_status [default: 'active']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+Table team_profiles {
+  id integer [pk, increment]
+  team_id integer [not null, unique, ref: > teams.id]
+  description text
+  win_count integer [default: 0]
+  loss_count integer [default: 0]
+  tie_count integer [default: 0]
+  goals_for integer [default: 0]
+  goals_against integer [default: 0]
+  updated_at timestamp [default: `now()`]
+}
+
+Table farm_teams {
+  id integer [pk, increment]
+  parent_team_id integer [not null, ref: > teams.id]
+  name varchar [not null]
+  abbreviation varchar
+  logo_url varchar
+  created_at timestamp [default: `now()`]
+}
+
+// ============================================================================
+// TEAM STAFF & OFFICIALS
+// ============================================================================
+
+Enum staff_role {
+  head_coach
+  assistant_coach
+  goalie_coach
+  trainer
+  equipment_manager
+  general_manager
+  other
+}
+
+Enum official_role {
+  referee
+  linesman
+  other
+}
+
+Table team_staff {
+  id integer [pk, increment]
+  team_id integer [not null, ref: > teams.id]
+  season_id integer [not null, ref: > seasons.id]
+  person_id integer [not null, ref: > persons.id]
+  staff_role staff_role [not null]
+  hire_date date [not null]
+  end_date date
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (team_id, season_id, person_id) [unique]
+  }
+  Note: 'Coaches, trainers, and staff assigned to teams per season'
+}
+
+Table game_officials {
+  id integer [pk, increment]
+  game_id integer [not null, ref: > games.id]
+  person_id integer [not null, ref: > persons.id]
+  official_role official_role [not null]
+  created_at timestamp [default: `now()`]
+  indexes {
+    (game_id, person_id) [unique]
+  }
+  Note: 'Referees and linesmen assigned to games'
+}
+
+Table game_captains {
+  id integer [pk, increment]
+  game_id integer [not null, ref: > games.id]
+  team_id integer [not null, ref: > teams.id]
+  player_id integer [not null, ref: > players.id]
+  is_captain boolean [default: true]
+  is_alternate_captain boolean [default: false]
+  created_at timestamp [default: `now()`]
+  indexes {
+    (game_id, team_id) [unique]
+  }
+  Note: 'Captain designations per game, separate from roster captain'
+}
+
+// ============================================================================
+// PEOPLE: Players, Rosters, Lineups
+// ============================================================================
+
+Enum player_status {
+  active
+  injured
+  suspended
+  inactive
+  traded
+  released
+}
+
+Table players {
+  id integer [pk, increment]
+  person_id integer [not null, ref: > persons.id]
+  jersey_number integer
+  position player_position
+  height_cm integer
+  weight_kg integer
+  handedness handedness
+  draft_year integer
+  is_eligible_for_draft boolean [default: true]
+  status player_status [default: 'active']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Athlete information; extends persons table'
+}
+
+Table player_profiles {
+  id integer [pk, increment]
+  player_id integer [not null, unique, ref: > players.id]
+  bio text
+  photo_url varchar
+  skill_level skill_level
+  years_experience integer
+  preferred_positions varchar
+  updated_at timestamp [default: `now()`]
+}
+
+Table rosters {
+  id integer [pk, increment]
+  team_id integer [not null, ref: > teams.id]
+  season_id integer [not null, ref: > seasons.id]
+  player_id integer [not null, ref: > players.id]
+  jersey_number integer
+  is_captain boolean [default: false]
+  is_alternate_captain boolean [default: false]
+  join_date date
+  contract_end_date date
+  salary_cap_hit decimal(10,2)
+  status player_status [default: 'active']
+  photo_url varchar
+  created_at timestamp [default: `now()`]
+  indexes {
+    (team_id, player_id, season_id) [unique]
+  }
+}
+
+Table lineups {
+  id integer [pk, increment]
+  game_id integer [ref: > games.id]
+  team_id integer [not null, ref: > teams.id]
+  player_id integer [not null, ref: > players.id]
+  position player_position
+  line_number integer
+  is_starting boolean [default: false]
+  created_at timestamp [default: `now()`]
+}
+
+Table loan_players {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  from_team_id integer [not null, ref: > teams.id]
+  to_team_id integer [not null, ref: > teams.id]
+  start_date date [not null]
+  end_date date
+  reason loan_reason
+  status varchar [default: 'active']
+  created_at timestamp [default: `now()`]
+}
+
+// ============================================================================
+// EQUIPMENT: Personal Sticks & Gear
+// ============================================================================
+
+Table personal_equipment {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  equipment_type equipment_type [not null]
+  brand_id integer [ref: > brands.id]
+  model varchar
+  serial_number varchar
+  condition equipment_condition
+  is_in_use boolean [default: true]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Player personal sticks and equipment'
+}
+
+// ============================================================================
+// VENUES & SCHEDULING
+// ============================================================================
+
+Table venues {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  name varchar [not null]
+  city varchar
+  province_state varchar
+  address varchar
+  capacity integer
+  ice_surface_size varchar
+  has_locker_rooms boolean
+  parking_available boolean
+  wheelchair_accessible boolean
+  amenities text
+  logo_url varchar
+  banner_url varchar
+  created_at timestamp [default: `now()`]
+}
+
+// ============================================================================
+// GAMES & LIVE EVENTS
+// ============================================================================
+
+Enum game_status {
+  scheduled
+  in_progress
+  completed
+  cancelled
+  postponed
+}
+
+Table games {
+  id integer [pk, increment]
+  season_id integer [not null, ref: > seasons.id]
+  division_id integer [not null, ref: > divisions.id]
+  home_team_id integer [not null, ref: > teams.id]
+  away_team_id integer [not null, ref: > teams.id]
+  venue_id integer [ref: > venues.id]
+  scheduled_time timestamp [not null]
+  status game_status [default: 'scheduled']
+  home_goals integer [default: 0]
+  away_goals integer [default: 0]
+  game_type game_type
+  overtime_period boolean [default: false]
+  is_shootout boolean [default: false]
+  shootout_home_goals integer
+  shootout_away_goals integer
+  game_duration_minutes integer
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+Table game_approvals {
+  id integer [pk, increment]
+  game_id integer [not null, unique, ref: > games.id]
+  approved_by integer [not null, ref: > user_accounts.id]
+  approval_status approval_status [default: 'pending']
+  approval_date timestamp
+  notes text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Game result approval before standings lock'
+}
+
+Enum event_type {
+  goal
+  assist
+  penalty
+  shot
+  save
+  hit
+  block
+  takeaway
+  giveaway
+  faceoff
+  period_start
+  period_end
+  game_start
+  game_end
+}
+
+Table game_events {
+  id integer [pk, increment]
+  game_id integer [not null, ref: > games.id]
+  event_type event_type [not null]
+  period integer
+  time_in_period varchar
+  team_id integer [not null, ref: > teams.id]
+  player_id integer [ref: > players.id]
+  assist_player_id integer [ref: > players.id]
+  second_assist_player_id integer [ref: > players.id]
+  x_coordinate integer
+  y_coordinate integer
+  penalty_type penalty_type
+  penalty_duration integer
+  is_confirmed boolean [default: false]
+  video_review_used boolean [default: false]
+  description text
+  created_at timestamp [default: `now()`]
+  Note: 'Live game scoring and event tracking with spatial data and penalty details'
+}
+
+// ============================================================================
+// STANDINGS & STATISTICS
+// ============================================================================
+
+Table standings {
+  id integer [pk, increment]
+  division_id integer [not null, ref: > divisions.id]
+  team_id integer [not null, ref: > teams.id]
+  games_played integer [default: 0]
+  wins integer [default: 0]
+  losses integer [default: 0]
+  ties integer [default: 0]
+  goals_for integer [default: 0]
+  goals_against integer [default: 0]
+  points integer [default: 0]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (division_id, team_id) [unique]
+  }
+}
+
+Table player_statistics {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  season_id integer [not null, ref: > seasons.id]
+  team_id integer [not null, ref: > teams.id]
+  games_played integer [default: 0]
+  goals integer [default: 0]
+  assists integer [default: 0]
+  points integer [default: 0]
+  penalty_minutes integer [default: 0]
+  shots integer [default: 0]
+  plus_minus integer [default: 0]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (player_id, season_id, team_id) [unique]
+  }
+}
+
+Table team_statistics {
+  id integer [pk, increment]
+  team_id integer [not null, ref: > teams.id]
+  season_id integer [not null, ref: > seasons.id]
+  games_played integer [default: 0]
+  wins integer [default: 0]
+  losses integer [default: 0]
+  ties integer [default: 0]
+  goals_for integer [default: 0]
+  goals_against integer [default: 0]
+  power_play_goals integer [default: 0]
+  power_play_attempts integer [default: 0]
+  short_handed_goals integer [default: 0]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (team_id, season_id) [unique]
+  }
+}
+
+// ============================================================================
+// ACHIEVEMENTS & MILESTONES
+// ============================================================================
+
+Enum rarity_tier {
+  common
+  rare
+  legendary
+}
+
+Table achievements {
+  id integer [pk, increment]
+  name varchar [not null]
+  description text
+  badge_icon_url varchar
+  criteria varchar
+  rarity_tier rarity_tier
+  display_order integer
+}
+
+Table player_achievements {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  achievement_id integer [not null, ref: > achievements.id]
+  earned_date date [not null]
+  season_id integer [ref: > seasons.id]
+  created_at timestamp [default: `now()`]
+}
+
+Table milestones {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  milestone_type milestone_type
+  value integer
+  description text
+  achieved_date date
+  season_id integer [ref: > seasons.id]
+  created_at timestamp [default: `now()`]
+  Note: 'Personal milestones (100 career goals, etc.)'
+}
+
+// ============================================================================
+// ADMIN: Waivers, Transfers, Draft
+// ============================================================================
+
+Enum waiver_status {
+  pending
+  approved
+  rejected
+  withdrawn
+  processed
+}
+
+Table waivers {
+  id integer [pk, increment]
+  season_id integer [not null, ref: > seasons.id]
+  player_id integer [not null, ref: > players.id]
+  requesting_team_id integer [not null, ref: > teams.id]
+  current_team_id integer [ref: > teams.id]
+  status waiver_status [default: 'pending']
+  request_date date [not null]
+  process_date date
+  notes text
+  processed_by integer [ref: > persons.id]
+  created_at timestamp [default: `now()`]
+}
+
+Enum transfer_status {
+  pending
+  approved
+  rejected
+  completed
+  cancelled
+}
+
+Enum suspension_reason {
+  misconduct
+  unsportsmanlike_conduct
+  fighting
+  abuse_of_officials
+  injury_to_opponent
+  excessive_penalties
+  violation_of_league_rules
+  other
+}
+
+Enum suspension_status {
+  active
+  served
+  appealed
+  overturned
+}
+
+Table suspensions {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  season_id integer [not null, ref: > seasons.id]
+  reason suspension_reason [not null]
+  suspension_length_games integer [not null]
+  start_date date [not null]
+  end_date date
+  issued_by integer [ref: > persons.id]
+  status suspension_status [default: 'active']
+  notes text
+  document_url varchar
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Player suspensions and disciplinary actions'
+}
+
+Table transfers {
+  id integer [pk, increment]
+  season_id integer [not null, ref: > seasons.id]
+  player_id integer [not null, ref: > players.id]
+  from_team_id integer [not null, ref: > teams.id]
+  to_team_id integer [not null, ref: > teams.id]
+  transfer_type transfer_type
+  status transfer_status [default: 'pending']
+  request_date date [not null]
+  approval_date date
+  reason text
+  approved_by integer [ref: > persons.id]
+  created_at timestamp [default: `now()`]
+}
+
+Table player_draft {
+  id integer [pk, increment]
+  season_id integer [not null, ref: > seasons.id]
+  division_id integer [not null, ref: > divisions.id]
+  round integer [not null]
+  pick_order integer [not null]
+  team_id integer [not null, ref: > teams.id]
+  player_id integer [ref: > players.id]
+  is_skipped boolean [default: false]
+  created_at timestamp [default: `now()`]
+}
+
+// ============================================================================
+// PLAYOFF BRACKETS & SEEDINGS
+// ============================================================================
+
+Table playoff_brackets {
+  id integer [pk, increment]
+  season_id integer [not null, ref: > seasons.id]
+  division_id integer [not null, ref: > divisions.id]
+  round integer [not null]
+  bracket_position integer [not null]
+  home_team_id integer [not null, ref: > teams.id]
+  away_team_id integer [not null, ref: > teams.id]
+  winner_team_id integer [ref: > teams.id]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (season_id, division_id, round, bracket_position) [unique]
+  }
+  Note: 'Playoff bracket structure and matchups per season/division'
+}
+
+Table playoff_seedings {
+  id integer [pk, increment]
+  season_id integer [not null, ref: > seasons.id]
+  division_id integer [not null, ref: > divisions.id]
+  team_id integer [not null, ref: > teams.id]
+  seed_rank integer [not null]
+  points_at_seeding integer
+  seeding_date date [not null]
+  created_at timestamp [default: `now()`]
+  indexes {
+    (season_id, division_id, team_id) [unique]
+  }
+  Note: 'Playoff seeding info calculated or assigned before bracket generation'
+}
+
+// ============================================================================
+// EVENTS & RSVP (Community/Social)
+// ============================================================================
+
+Enum event_status {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+
+Enum rsvp_status {
+  attending
+  not_attending
+  maybe
+  no_response
+}
+
+Table events {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  name varchar [not null]
+  description text
+  event_date date [not null]
+  event_time timestamp
+  venue_id integer [ref: > venues.id]
+  event_type varchar
+  status event_status [default: 'scheduled']
+  max_attendees integer
+  registration_required boolean [default: false]
+  registration_deadline date
+  logo_url varchar
+  banner_url varchar
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+Table event_rsvp {
+  id integer [pk, increment]
+  event_id integer [not null, ref: > events.id]
+  user_id integer [not null, ref: > user_accounts.id]
+  status rsvp_status [default: 'no_response']
+  response_date timestamp
+  notes varchar
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (event_id, user_id) [unique]
+  }
+}
+
+// ============================================================================
+// MESSAGING & DOCUMENTS
+// ============================================================================
+
+Table messages {
+  id integer [pk, increment]
+  sender_id integer [not null, ref: > user_accounts.id]
+  recipient_id integer [not null, ref: > user_accounts.id]
+  subject varchar
+  body text [not null]
+  is_read boolean [default: false]
+  read_at timestamp
+  created_at timestamp [default: `now()`]
+  Note: 'Direct messages between users'
+}
+
+Table documents {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  document_type varchar [not null]
+  title varchar [not null]
+  description text
+  file_url varchar [not null]
+  file_size_bytes integer
+  uploaded_by integer [ref: > user_accounts.id]
+  season_id integer [ref: > seasons.id]
+  team_id integer [ref: > teams.id]
+  player_id integer [ref: > players.id]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Contracts, waivers, medical forms, league bylaws, etc.'
+}
+
+// ============================================================================
+// SETTINGS & INTEGRATIONS
+// ============================================================================
+
+Table google_sheets_settings {
+  id integer [pk, increment]
+  organization_id integer [not null, unique, ref: > organizations.id]
+  sheet_id varchar
+  api_key varchar
+  scope varchar
+  sync_enabled boolean [default: false]
+  last_sync_date timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Google Sheets integration settings'
+}
+
+Table google_apps_script_settings {
+  id integer [pk, increment]
+  organization_id integer [not null, unique, ref: > organizations.id]
+  project_id varchar
+  api_key varchar
+  deployment_id varchar
+  script_url varchar
+  enabled boolean [default: false]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Google Apps Script integration settings'
+}
+
+Table shopify_settings {
+  id integer [pk, increment]
+  organization_id integer [not null, unique, ref: > organizations.id]
+  shop_name varchar [not null]
+  api_key varchar
+  api_secret varchar
+  access_token varchar
+  webhook_url varchar
+  sync_enabled boolean [default: false]
+  last_sync_date timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Shopify store integration for team merchandise'
+}
+
+Table system_settings {
+  id integer [pk, increment]
+  organization_id integer [not null, unique, ref: > organizations.id]
+  setting_key varchar [not null]
+  setting_value text
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (organization_id, setting_key) [unique]
+  }
+}
+
+Table definitions {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  definition_key varchar [not null]
+  definition_value text [not null]
+  category varchar
+  description text
+  is_editable boolean [default: true]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (organization_id, definition_key) [unique]
+  }
+  Note: 'Configurable reference definitions (roster limits, rule versions, etc.)'
+}
+
+// ============================================================================
+// GAME OPERATIONS: Attendance, Periods, Penalty Box, Records
+// ============================================================================
+
+Table game_attendance {
+  id integer [pk, increment]
+  game_id integer [not null, ref: > games.id]
+  paid_count integer [default: 0]
+  free_count integer [default: 0]
+  total_attendance integer [default: 0]
+  capacity_utilization_percent decimal(5,2)
+  recorded_by integer [ref: > user_accounts.id]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    game_id [unique]
+  }
+  Note: 'Game attendance tracking'
+}
+
+Table game_periods {
+  id integer [pk, increment]
+  game_id integer [not null, ref: > games.id]
+  period_number integer [not null]
+  start_time timestamp
+  end_time timestamp
+  duration_minutes integer
+  home_goals_in_period integer [default: 0]
+  away_goals_in_period integer [default: 0]
+  created_at timestamp [default: `now()`]
+  indexes {
+    (game_id, period_number) [unique]
+  }
+  Note: 'Period-by-period game breakdown'
+}
+
+Table penalty_box_events {
+  id integer [pk, increment]
+  game_id integer [not null, ref: > games.id]
+  player_id integer [not null, ref: > players.id]
+  team_id integer [not null, ref: > teams.id]
+  period integer [not null]
+  time_in_period varchar
+  box_entry_time timestamp
+  box_exit_time timestamp
+  duration_minutes integer
+  penalty_event_id integer [ref: > game_events.id]
+  created_at timestamp [default: `now()`]
+  Note: 'Track players in penalty box during games'
+}
+
+Table team_versus_team_records {
+  id integer [pk, increment]
+  season_id integer [not null, ref: > seasons.id]
+  team_a_id integer [not null, ref: > teams.id]
+  team_b_id integer [not null, ref: > teams.id]
+  games_played integer [default: 0]
+  team_a_wins integer [default: 0]
+  team_b_wins integer [default: 0]
+  ties integer [default: 0]
+  team_a_goals_for integer [default: 0]
+  team_b_goals_for integer [default: 0]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (season_id, team_a_id, team_b_id) [unique]
+  }
+  Note: 'Historical head-to-head matchup records'
+}
+
+Table goalie_statistics {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  season_id integer [not null, ref: > seasons.id]
+  team_id integer [not null, ref: > teams.id]
+  games_played integer [default: 0]
+  games_started integer [default: 0]
+  wins integer [default: 0]
+  losses integer [default: 0]
+  ties integer [default: 0]
+  shutouts integer [default: 0]
+  shots_against integer [default: 0]
+  goals_against integer [default: 0]
+  save_percentage decimal(5,3)
+  goals_against_average decimal(5,2)
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (player_id, season_id, team_id) [unique]
+  }
+  Note: 'Specialized statistics for goalies'
+}
+
+// ============================================================================
+// PRACTICE & AVAILABILITY
+// ============================================================================
+
+Table practice_sessions {
+  id integer [pk, increment]
+  team_id integer [not null, ref: > teams.id]
+  season_id integer [not null, ref: > seasons.id]
+  venue_id integer [ref: > venues.id]
+  scheduled_time timestamp [not null]
+  end_time timestamp
+  notes text
+  is_cancelled boolean [default: false]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Team practice session scheduling'
+}
+
+Table practice_attendance {
+  id integer [pk, increment]
+  practice_id integer [not null, ref: > practice_sessions.id]
+  player_id integer [not null, ref: > players.id]
+  attendance_status varchar [not null]
+  created_at timestamp [default: `now()`]
+  indexes {
+    (practice_id, player_id) [unique]
+  }
+  Note: 'Track player attendance at practices'
+}
+
+Table player_availability {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  season_id integer [not null, ref: > seasons.id]
+  day_of_week integer
+  is_available boolean [default: true]
+  reason varchar
+  start_date date
+  end_date date
+  created_at timestamp [default: `now()`]
+  Note: 'Weekly/seasonal availability for scheduling (injury rehab, work, school, etc.)'
+}
+
+Table official_assignments {
+  id integer [pk, increment]
+  person_id integer [not null, ref: > persons.id]
+  season_id integer [not null, ref: > seasons.id]
+  official_role official_role [not null]
+  is_available boolean [default: true]
+  preferred_divisions varchar
+  preferred_venues varchar
+  max_games_per_week integer
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  Note: 'Official availability and preferences for game assignment'
+}
+
+// ============================================================================
+// DASHBOARD & NAVIGATION
+// ============================================================================
+
+Table dashboard_widgets {
+  id integer [pk, increment]
+  user_id integer [not null, ref: > user_accounts.id]
+  widget_type varchar [not null]
+  position integer
+  is_visible boolean [default: true]
+  settings text
+  created_at timestamp [default: `now()`]
+  Note: 'Customizable dashboard layout per user'
+}
+
+// ============================================================================
+// GOOGLE SHEETS HELPERS: Denormalized & Lookup Tables
+// ============================================================================
+
+Table season_current {
+  id integer [pk, increment]
+  organization_id integer [not null, unique, ref: > organizations.id]
+  season_id integer [not null, ref: > seasons.id]
+  is_current boolean [default: true]
+  updated_at timestamp [default: `now()`]
+  Note: 'Marks the active season per organization for easy filtering in Sheets'
+}
+
+Table team_season_rosters {
+  id integer [pk, increment]
+  team_id integer [not null, ref: > teams.id]
+  season_id integer [not null, ref: > seasons.id]
+  player_count integer [default: 0]
+  roster_status varchar
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (team_id, season_id) [unique]
+  }
+  Note: 'Denormalized snapshot for quick roster size lookups'
+}
+
+Table division_team_lookup {
+  id integer [pk, increment]
+  division_id integer [not null, ref: > divisions.id]
+  team_id integer [not null, ref: > teams.id]
+  team_name varchar [not null]
+  abbreviation varchar
+  created_at timestamp [default: `now()`]
+  indexes {
+    (division_id, team_id) [unique]
+  }
+  Note: 'Quick lookup for dropdown validation and team-by-division filtering'
+}
+
+Table player_lookup {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  person_id integer [not null, ref: > persons.id]
+  first_name varchar [not null]
+  last_name varchar [not null]
+  jersey_number integer
+  current_team_id integer [ref: > teams.id]
+  updated_at timestamp [default: `now()`]
+  Note: 'Denormalized player info to avoid repeated joins to persons'
+}
+
+Table player_contract_history {
+  id integer [pk, increment]
+  player_id integer [not null, ref: > players.id]
+  team_id integer [not null, ref: > teams.id]
+  season_id integer [not null, ref: > seasons.id]
+  start_date date [not null]
+  end_date date
+  status varchar
+  created_at timestamp [default: `now()`]
+  Note: 'Archive of historical roster assignments for tracking player movement'
+}
+
+Table event_status_log {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  entity_type varchar [not null]
+  entity_id integer [not null]
+  old_status varchar
+  new_status varchar
+  changed_by integer [ref: > user_accounts.id]
+  changed_at timestamp [default: `now()`]
+  Note: 'Audit trail for status changes (game_events, waivers, transfers, etc.)'
+}
+
+Table team_season_stats_cache {
+  id integer [pk, increment]
+  team_id integer [not null, ref: > teams.id]
+  season_id integer [not null, ref: > seasons.id]
+  games_played integer [default: 0]
+  wins integer [default: 0]
+  losses integer [default: 0]
+  ties integer [default: 0]
+  goals_for integer [default: 0]
+  goals_against integer [default: 0]
+  points integer [default: 0]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    (team_id, season_id) [unique]
+  }
+  Note: 'Pre-computed team stats snapshot for quick Sheets exports'
+}
+
+Table bulk_import_staging {
+  id integer [pk, increment]
+  organization_id integer [not null, ref: > organizations.id]
+  import_type varchar [not null]
+  raw_data text [not null]
+  status varchar [default: 'pending']
+  error_message text
+  imported_by integer [ref: > user_accounts.id]
+  imported_at timestamp
+  created_at timestamp [default: `now()`]
+  Note: 'Scratch table for CSV uploads; review before moving to production tables'
+}
+
+// ============================================================================
+// SHEET BUILD GUIDE & METADATA
+// ============================================================================
+
+Enum table_category {
+  core
+  league_structure
+  people_and_rosters
+  games_and_events
+  statistics
+  admin_and_discipline
+  playoffs
+  community
+  settings_and_integrations
+  operations
+  helpers_and_cache
+}
+
+Enum primary_user_role {
+  admin
+  scorekeeper
+  coach
+  player
+  referee
+}
+
+Enum update_frequency {
+  once_per_season
+  weekly
+  per_game
+  ad_hoc
+  real_time
+  computed_on_save
+}
+
+Table sheet_build_order {
+  id integer [pk, increment]
+  table_name varchar [not null, unique]
+  category table_category [not null]
+  priority_order integer [not null]
+  primary_user_roles varchar
+  update_frequency update_frequency
+  is_computed_or_denormalized boolean [default: false]
+  description text
+  ui_hints text
+  created_at timestamp [default: `now()`]
+  Note: 'Build priority and reference guide for Google Sheets conversion and frontend'
+}
+
+// ============================================================================
+// VIEWS
+// ============================================================================
+
+// Sheet build order seed data; Jules: reference this to prioritize Sheets tabs and frontend pages.
+// Phase 1 (Essential): organizations, persons, user_accounts, seasons, divisions, teams, venues
+// Phase 2 (Core Ops): players, rosters, games, game_events, standings
+// Phase 3 (Support): game_periods, penalty_box_events, game_attendance, game_approvals
+// Phase 4 (Admin): waivers, transfers, suspensions, player_draft, team_staff, game_officials
+// Phase 5 (Advanced): playoff_brackets, playoff_seedings, goalie_statistics, team_versus_team_records
+// Phase 6 (Helpers): All lookup/cache tables, sheet_build_order itself
+
+DiagramView "All tables" {
+  *
+}
+
+DiagramView "League Structure" {
+  organizations
+  seasons
+  divisions
+  teams
+  team_profiles
+  farm_teams
+}
+
+DiagramView "Players & Rosters" {
+  persons
+  players
+  player_profiles
+  rosters
+  lineups
+  loan_players
+  personal_equipment
+}
+
+DiagramView "Games & Events" {
+  games
+  game_events
+  venues
+  standings
+}
+
+DiagramView "Statistics" {
+  player_statistics
+  team_statistics
+  player_achievements
+  achievements
+  milestones
+}
+
+DiagramView "Users & Admin" {
+  roles
+  user_accounts
+  user_profiles
+  persons
+  waivers
+  transfers
+  suspensions
+  player_draft
+  team_staff
+  game_officials
+  game_captains
+  playoff_brackets
+  playoff_seedings
+  messages
+  documents
+}
+
+DiagramView "Community & Integrations" {
+  events
+  event_rsvp
+  retailers
+  google_sheets_settings
+  google_apps_script_settings
+  shopify_settings
+  system_settings
+  definitions
+  dashboard_widgets
+}
+
+DiagramView "Games & Operations" {
+  games
+  game_periods
+  game_events
+  game_attendance
+  penalty_box_events
+  lineups
+  venues
+  team_versus_team_records
+}
+
+DiagramView "Practice & Development" {
+  practice_sessions
+  practice_attendance
+  player_availability
+  official_assignments
+  team_staff
+}
+
+DiagramView "Advanced Statistics" {
+  player_statistics
+  team_statistics
+  goalie_statistics
+  team_versus_team_records
+  standings
+  player_achievements
+  milestones
+}
