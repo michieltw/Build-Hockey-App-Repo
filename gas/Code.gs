@@ -1,10 +1,10 @@
 /**
  * Google Apps Script for ICE HOCKEY LEAGUE MANAGER
  * Current Phase: Phase 1
- * Objective: Set up the foundational GAS file for 'organizations' and 'teams' tables.
+ * Objective: Set up the foundational GAS file for core Phase 1 tables.
  */
 
-// Define Schema Headers
+// Define Schema Headers for all Phase 1 tables
 const SCHEMA = {
   organizations: [
     'id', 'name', 'league_name', 'location', 'country', 'province_state',
@@ -15,11 +15,38 @@ const SCHEMA = {
     'id', 'division_id', 'name', 'abbreviation', 'logo_url', 'home_color',
     'away_color', 'practice_venue_id', 'practice_schedule', 'status',
     'created_at', 'updated_at'
+  ],
+  persons: [
+    'id', 'first_name', 'last_name', 'date_of_birth', 'email', 'phone',
+    'handedness', 'profile_photo_url', 'created_at', 'updated_at'
+  ],
+  roles: [
+    'id', 'organization_id', 'name', 'description', 'permissions',
+    'is_custom', 'created_at', 'updated_at'
+  ],
+  user_accounts: [
+    'id', 'person_id', 'username', 'email', 'password_hash', 'role_id',
+    'preferred_organization_id', 'is_active', 'last_login',
+    'created_at', 'updated_at'
+  ],
+  seasons: [
+    'id', 'organization_id', 'name', 'year', 'status', 'start_date',
+    'end_date', 'registration_deadline', 'league_rules_version',
+    'logo_url', 'color_scheme', 'created_at', 'updated_at'
+  ],
+  divisions: [
+    'id', 'season_id', 'name', 'level', 'age_group', 'skill_level',
+    'max_teams', 'playoff_format', 'logo_url', 'banner_url', 'created_at'
+  ],
+  venues: [
+    'id', 'organization_id', 'name', 'city', 'province_state', 'address',
+    'capacity', 'ice_surface_size', 'has_locker_rooms', 'parking_available',
+    'wheelchair_accessible', 'amenities', 'logo_url', 'banner_url', 'created_at'
   ]
 };
 
 /**
- * Auto-create the 'organizations' and 'teams' sheets if they don't exist.
+ * Auto-create the defined sheets if they don't exist.
  */
 function ensureSheetsExist() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -92,8 +119,10 @@ function doGet(e) {
 }
 
 /**
- * Handle POST requests to append a new team.
- * Expected payload (JSON): team data matching the SCHEMA headers (excluding id, created_at, updated_at).
+ * Handle POST requests to append a new row dynamically.
+ * Expected payload (JSON):
+ *  - table: Name of the sheet to insert to
+ *  - ...data fields matching the schema (excluding id, created_at, updated_at).
  */
 function doPost(e) {
   ensureSheetsExist();
@@ -104,12 +133,12 @@ function doPost(e) {
     const postData = JSON.parse(e.postData.contents);
     const table = postData.table || e?.parameter?.table;
 
-    if (table !== 'teams') {
-      throw new Error("Only 'teams' appending is supported in this endpoint.");
+    if (!table || !SCHEMA[table]) {
+      throw new Error(`Invalid or missing table parameter: '${table}'`);
     }
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName('teams');
+    const sheet = ss.getSheetByName(table);
     const data = sheet.getDataRange().getValues();
 
     // Auto-increment ID
@@ -122,8 +151,8 @@ function doPost(e) {
 
     const timestamp = new Date().toISOString();
 
-    // Prepare row array in the exact order of SCHEMA.teams
-    const newRow = SCHEMA.teams.map(header => {
+    // Prepare row array in the exact order of SCHEMA[table]
+    const newRow = SCHEMA[table].map(header => {
       if (header === 'id') return newId;
       if (header === 'created_at') return timestamp;
       if (header === 'updated_at') return timestamp;
@@ -136,7 +165,7 @@ function doPost(e) {
 
     response = {
       success: true,
-      message: `Team successfully appended.`,
+      message: `Row successfully appended to '${table}'.`,
       id: newId
     };
 
