@@ -13,6 +13,7 @@ export function MainLayout() {
     { name: "Rosters", path: "/rosters", icon: Users },
     { name: "Players", path: "/players", icon: Activity },
     { name: "Equipment", path: "/equipment", icon: Shield },
+    { name: "Lineups", path: "/lineups", icon: Users },
     { name: "Persons", path: "/persons", icon: UserSquare2 },
     { name: "Seasons", path: "/seasons", icon: Trophy },
     { name: "Settings", path: "/settings", icon: Settings },
