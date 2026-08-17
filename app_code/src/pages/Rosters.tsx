@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import { fetchTableData } from '../services/api';
+import { fetchTableData, insertTableData } from '../services/api';
+import { RosterForm } from '../components/forms/RosterForm';
 
 export function Rosters() {
   const [rosters, setRosters] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
 
   const loadData = async () => {
@@ -23,8 +25,15 @@ export function Rosters() {
     loadData();
   }, []);
 
-  const handleCreate = () => {
-    alert('Roster form is under construction!');
+  const handleCreate = async (formData: any) => {
+    setError('');
+    const res = await insertTableData('rosters', formData);
+    if (res.success) {
+      setShowForm(false);
+      await loadData();
+    } else {
+      setError(res.error || 'Failed to save roster assignment');
+    }
   };
 
   return (
@@ -34,19 +43,28 @@ export function Rosters() {
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Rosters</h2>
           <p className="text-slate-500 mt-1">Manage team rosters and player assignments.</p>
         </div>
-        <button
-          onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Assign Player
-        </button>
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Assign Player
+          </button>
+        )}
       </div>
 
       {error && (
         <div className="mb-6 p-4 bg-rose-50 text-rose-700 rounded-xl border border-rose-200 text-sm font-semibold">
           {error}
         </div>
+      )}
+
+      {showForm && (
+        <RosterForm
+          onSubmit={handleCreate}
+          onCancel={() => setShowForm(false)}
+        />
       )}
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
