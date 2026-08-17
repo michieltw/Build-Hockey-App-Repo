@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchTableData } from "../services/api";
-import { ArrowLeft, Clock, MapPin, AlertCircle, Shield } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, AlertCircle, Shield, Plus, Goal, Flag, Activity } from "lucide-react";
+import { LiveEventLogger } from "../components/LiveEventLogger";
 
 export function GameDashboard() {
   const { id } = useParams();
   const [game, setGame] = useState<any>(null);
+  const [events, setEvents] = useState<any[]>([]);
   const [homeTeam, setHomeTeam] = useState<any>(null);
   const [awayTeam, setAwayTeam] = useState<any>(null);
   const [venue, setVenue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isEventLoggerOpen, setIsEventLoggerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -20,13 +23,15 @@ export function GameDashboard() {
     try {
       setLoading(true);
 
-      const [games, teams, venues] = await Promise.all([
+      const [games, teams, venues, gameEvents] = await Promise.all([
         fetchTableData("games"),
         fetchTableData("teams"),
-        fetchTableData("venues")
+        fetchTableData("venues"),
+        fetchTableData("game_events")
       ]);
 
       const foundGame = games.find((g: any) => g.id === Number(id));
+
       if (!foundGame) {
         throw new Error("Game not found");
       }
@@ -35,6 +40,10 @@ export function GameDashboard() {
       setHomeTeam(teams.find((t: any) => t.id === foundGame.home_team_id));
       setAwayTeam(teams.find((t: any) => t.id === foundGame.away_team_id));
       setVenue(venues.find((v: any) => v.id === foundGame.venue_id));
+
+      // Filter events for this game and sort by creation (or period/time in a real app)
+      const thisGameEvents = gameEvents.filter((e: any) => e.game_id === foundGame.id);
+      setEvents(thisGameEvents.reverse());
 
       setError(null);
     } catch (err: any) {
@@ -51,6 +60,14 @@ export function GameDashboard() {
       </div>
     );
   }
+
+  const getEventIcon = (type: string) => {
+    switch (type) {
+      case 'goal': return <Goal className="w-4 h-4 text-emerald-600" />;
+      case 'penalty': return <Flag className="w-4 h-4 text-amber-600" />;
+      default: return <Activity className="w-4 h-4 text-slate-500" />;
+    }
+  };
 
   if (error || !game) {
     return (
@@ -136,13 +153,64 @@ export function GameDashboard() {
         </div>
       </div>
 
+      {isEventLoggerOpen && (
+        <LiveEventLogger
+          gameId={game.id}
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+          onClose={() => setIsEventLoggerOpen(false)}
+          onSuccess={() => {
+            setIsEventLoggerOpen(false);
+            loadGameData();
+          }}
+        />
+      )}
+
       {/* Placeholders for subsequent sections */}
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-             <h3 className="text-lg font-bold text-slate-900 mb-4">Live Events</h3>
-             <div className="flex items-center justify-center h-48 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
-                <p className="text-slate-500 font-medium">Event logging coming soon</p>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col h-full min-h-[400px]">
+             <div className="flex items-center justify-between mb-6">
+               <h3 className="text-lg font-bold text-slate-900">Live Events</h3>
+               <button
+                 onClick={() => setIsEventLoggerOpen(true)}
+                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors"
+               >
+                 <Plus className="w-4 h-4" />
+                 Log Event
+               </button>
+             </div>
+
+             <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+               {events.length === 0 ? (
+                 <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                    <Activity className="w-8 h-8 mb-2 text-slate-300" />
+                    <p className="text-sm font-medium">No events logged yet</p>
+                 </div>
+               ) : (
+                 events.map((ev, idx) => (
+                   <div key={idx} className="flex gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                     <div className="mt-0.5">
+                       {getEventIcon(ev.event_type)}
+                     </div>
+                     <div className="flex-1">
+                       <div className="flex justify-between items-start mb-1">
+                         <span className="font-semibold text-slate-900 capitalize">{ev.event_type?.replace('_', ' ')}</span>
+                         <span className="text-xs font-medium text-slate-500 tabular-nums">
+                           P{ev.period} • {ev.time_in_period}
+                         </span>
+                       </div>
+                       <p className="text-sm text-slate-600">
+                         {ev.team_id == homeTeam?.id ? homeTeam?.name : awayTeam?.name}
+                         {ev.penalty_type ? ` - ${ev.penalty_type.replace('_', ' ')} (${ev.penalty_duration} min)` : ''}
+                       </p>
+                       {ev.description && (
+                         <p className="text-xs text-slate-500 mt-2 italic">{ev.description}</p>
+                       )}
+                     </div>
+                   </div>
+                 ))
+               )}
              </div>
           </div>
         </div>
