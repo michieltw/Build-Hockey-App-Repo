@@ -5,6 +5,7 @@ import { Teams } from "./pages/Teams";
 import { Seasons } from "./pages/Seasons";
 import { Persons } from "./pages/Persons";
 import { Rosters } from "./pages/Rosters";
+import { Players } from "./pages/Players";
 import { fetchTableData } from "./services/api";
 import { useState } from "react";
 
@@ -71,6 +72,7 @@ function App() {
           <Route path="organizations" element={<Organizations />} />
           <Route path="teams" element={<Teams />} />
           <Route path="rosters" element={<Rosters />} />
+          <Route path="players" element={<Players />} />
           <Route path="persons" element={<Persons />} />
           <Route path="seasons" element={<Seasons />} />
           <Route path="settings" element={<PlaceholderPage title="Settings" />} />
