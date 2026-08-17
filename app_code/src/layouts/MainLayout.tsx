@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, UserSquare2, Home, Trophy, Settings, Activity } from "lucide-react";
+import { LayoutDashboard, Users, UserSquare2, Home, Trophy, Settings, Activity, Shield } from "lucide-react";
 import { useAuthStore, type UserRole } from "../store/useAuthStore";
 
 export function MainLayout() {
@@ -12,6 +12,7 @@ export function MainLayout() {
     { name: "Teams", path: "/teams", icon: Users },
     { name: "Rosters", path: "/rosters", icon: Users },
     { name: "Players", path: "/players", icon: Activity },
+    { name: "Equipment", path: "/equipment", icon: Shield },
     { name: "Persons", path: "/persons", icon: UserSquare2 },
     { name: "Seasons", path: "/seasons", icon: Trophy },
     { name: "Settings", path: "/settings", icon: Settings },

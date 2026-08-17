@@ -63,6 +63,9 @@ const SCHEMA = {
   player_lookup: [
     'id', 'player_id', 'person_id', 'first_name', 'last_name',
     'jersey_number', 'current_team_id', 'updated_at'
+  ],
+  team_season_rosters: [
+    'id', 'team_id', 'season_id', 'player_count', 'roster_status', 'updated_at'
   ]
 };
 
@@ -174,6 +177,101 @@ function syncPlayerLookup(ss, playerData, playerId, timestamp) {
 }
 
 /**
+ * Helper to denormalize roster data into player_lookup and team_season_rosters.
+ */
+function syncRosterUpdates(ss, rosterData, timestamp) {
+  try {
+    const lookupSheet = ss.getSheetByName('player_lookup');
+    const rostersSheet = ss.getSheetByName('rosters');
+    let tsrSheet = ss.getSheetByName('team_season_rosters');
+
+    // 1. Update current_team_id in player_lookup
+    if (lookupSheet) {
+      const lookupData = lookupSheet.getDataRange().getValues();
+      const headers = lookupData[0];
+      const playerIdIdx = headers.indexOf('player_id');
+      const teamIdIdx = headers.indexOf('current_team_id');
+      const updatedAtIdx = headers.indexOf('updated_at');
+
+      if (playerIdIdx !== -1 && teamIdIdx !== -1) {
+        for (let i = 1; i < lookupData.length; i++) {
+          if (lookupData[i][playerIdIdx] == rosterData.player_id) {
+            // Update the team ID directly in the sheet (adding 1 for 1-based index)
+            lookupSheet.getRange(i + 1, teamIdIdx + 1).setValue(rosterData.team_id);
+            if (updatedAtIdx !== -1) {
+               lookupSheet.getRange(i + 1, updatedAtIdx + 1).setValue(timestamp);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    // 2. Count active players for the team/season snapshot
+    if (rostersSheet && tsrSheet) {
+      const allRosters = rostersSheet.getDataRange().getValues();
+      const rh = allRosters[0];
+      const tIdx = rh.indexOf('team_id');
+      const sIdx = rh.indexOf('season_id');
+      const statIdx = rh.indexOf('status');
+
+      let count = 0;
+      if (tIdx !== -1 && sIdx !== -1 && statIdx !== -1) {
+        for(let i=1; i < allRosters.length; i++){
+          if(allRosters[i][tIdx] == rosterData.team_id &&
+             allRosters[i][sIdx] == rosterData.season_id &&
+             (allRosters[i][statIdx] || '').toString().toLowerCase() === 'active') {
+             count++;
+          }
+        }
+
+        // Find existing record in team_season_rosters or create new
+        const tsrData = tsrSheet.getDataRange().getValues();
+        const tsrH = tsrData[0];
+        const tsrTIdx = tsrH.indexOf('team_id');
+        const tsrSIdx = tsrH.indexOf('season_id');
+        const tsrCountIdx = tsrH.indexOf('player_count');
+        const tsrUpdIdx = tsrH.indexOf('updated_at');
+
+        let found = false;
+        if(tsrTIdx !== -1 && tsrSIdx !== -1) {
+          for(let i=1; i < tsrData.length; i++){
+            if(tsrData[i][tsrTIdx] == rosterData.team_id && tsrData[i][tsrSIdx] == rosterData.season_id){
+               if(tsrCountIdx !== -1) tsrSheet.getRange(i+1, tsrCountIdx+1).setValue(count);
+               if(tsrUpdIdx !== -1) tsrSheet.getRange(i+1, tsrUpdIdx+1).setValue(timestamp);
+               found = true;
+               break;
+            }
+          }
+        }
+
+        if(!found) {
+           // Insert new record
+           let newId = 1;
+           if (tsrData.length > 1) {
+             const existingIds = tsrData.slice(1).map(row => parseInt(row[0]) || 0);
+             newId = Math.max(...existingIds) + 1;
+           }
+
+           const newRow = SCHEMA['team_season_rosters'].map(header => {
+             if (header === 'id') return newId;
+             if (header === 'team_id') return rosterData.team_id;
+             if (header === 'season_id') return rosterData.season_id;
+             if (header === 'player_count') return count;
+             if (header === 'roster_status') return "active";
+             if (header === 'updated_at') return timestamp;
+             return "";
+           });
+           tsrSheet.appendRow(newRow);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("syncRosterUpdates failed: " + err.message);
+  }
+}
+
+/**
  * Handle GET requests to fetch data.
  * Expected query parameters:
  *   - table: the name of the table/sheet to fetch (e.g. 'organizations' or 'teams')
@@ -245,6 +343,8 @@ function doPost(e) {
     // Post-processing triggers
     if (table === 'players') {
       syncPlayerLookup(ss, postData, newId, timestamp);
+    } else if (table === 'rosters') {
+      syncRosterUpdates(ss, postData, timestamp);
     }
 
     response = {
