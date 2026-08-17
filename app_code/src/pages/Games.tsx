@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchTableData } from "../services/api";
-import { Calendar, AlertCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Calendar, AlertCircle, Eye } from "lucide-react";
 import { GameForm } from "../components/GameForm";
 
 export function Games() {
@@ -95,12 +96,13 @@ export function Games() {
                 <th className="px-6 py-4">Venue</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Score</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {games.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                     <Calendar className="w-12 h-12 mx-auto text-slate-300 mb-3" />
                     <p className="text-base font-medium text-slate-900 mb-1">No games found</p>
                     <p>Schedule a game to get started.</p>
@@ -132,6 +134,15 @@ export function Games() {
                       {game.status === 'completed' || game.status === 'in_progress'
                         ? `${game.away_goals ?? 0} - ${game.home_goals ?? 0}`
                         : '-'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Link
+                        to={`/games/${game.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        View Dashboard
+                      </Link>
                     </td>
                   </tr>
                 ))
