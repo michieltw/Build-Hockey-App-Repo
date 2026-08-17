@@ -69,6 +69,7 @@ function App() {
           <Route index element={<PlaceholderPage title="Dashboard Overview" />} />
           <Route path="organizations" element={<Organizations />} />
           <Route path="teams" element={<Teams />} />
+          <Route path="rosters" element={<PlaceholderPage title="Rosters & Player Management" />} />
           <Route path="persons" element={<Persons />} />
           <Route path="seasons" element={<Seasons />} />
           <Route path="settings" element={<PlaceholderPage title="Settings" />} />

@@ -10,6 +10,7 @@ export function MainLayout() {
     { name: "Dashboard", path: "/", icon: LayoutDashboard },
     { name: "Organizations", path: "/organizations", icon: Home },
     { name: "Teams", path: "/teams", icon: Users },
+    { name: "Rosters", path: "/rosters", icon: Users },
     { name: "Persons", path: "/persons", icon: UserSquare2 },
     { name: "Seasons", path: "/seasons", icon: Trophy },
     { name: "Settings", path: "/settings", icon: Settings },

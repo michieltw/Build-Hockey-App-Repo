@@ -42,6 +42,23 @@ const SCHEMA = {
     'id', 'organization_id', 'name', 'city', 'province_state', 'address',
     'capacity', 'ice_surface_size', 'has_locker_rooms', 'parking_available',
     'wheelchair_accessible', 'amenities', 'logo_url', 'banner_url', 'created_at'
+  ],
+  players: [
+    'id', 'person_id', 'jersey_number', 'position', 'height_cm', 'weight_kg',
+    'handedness', 'draft_year', 'is_eligible_for_draft', 'status', 'created_at', 'updated_at'
+  ],
+  rosters: [
+    'id', 'team_id', 'season_id', 'player_id', 'jersey_number', 'is_captain',
+    'is_alternate_captain', 'join_date', 'contract_end_date', 'salary_cap_hit',
+    'status', 'photo_url', 'created_at'
+  ],
+  personal_equipment: [
+    'id', 'player_id', 'equipment_type', 'brand_id', 'model', 'serial_number',
+    'condition', 'is_in_use', 'created_at', 'updated_at'
+  ],
+  lineups: [
+    'id', 'game_id', 'team_id', 'player_id', 'position', 'line_number',
+    'is_starting', 'created_at'
   ]
 };
 
