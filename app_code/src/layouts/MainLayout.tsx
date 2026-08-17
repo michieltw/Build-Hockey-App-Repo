@@ -1,10 +1,12 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { LayoutDashboard, Users, UserSquare2, Home, Trophy, Settings } from "lucide-react";
+import { useAuthStore, type UserRole } from "../store/useAuthStore";
 
 export function MainLayout() {
   const location = useLocation();
+  const { role, setRole } = useAuthStore();
 
-  const navItems = [
+  const allNavItems = [
     { name: "Dashboard", path: "/", icon: LayoutDashboard },
     { name: "Organizations", path: "/organizations", icon: Home },
     { name: "Teams", path: "/teams", icon: Users },
@@ -13,14 +15,35 @@ export function MainLayout() {
     { name: "Settings", path: "/settings", icon: Settings },
   ];
 
+  const navItems = role === 'admin'
+    ? allNavItems
+    : allNavItems.filter(item => item.name === "Dashboard");
+
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900 font-sans">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-center">
+        <div className="p-6 border-b border-slate-100 flex flex-col items-center justify-center gap-4">
           <h1 className="text-xl font-extrabold tracking-tight text-slate-900">
             ICE HOCKEY LM
           </h1>
+          <div className="w-full text-sm">
+            <label htmlFor="role-select" className="block text-xs font-semibold text-slate-500 mb-1">
+              Test Role
+            </label>
+            <select
+              id="role-select"
+              value={role}
+              onChange={(e) => setRole(e.target.value as UserRole)}
+              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md text-slate-700 outline-none focus:ring-2 focus:ring-slate-900"
+            >
+              <option value="admin">Admin</option>
+              <option value="scorekeeper">Scorekeeper</option>
+              <option value="coach">Coach</option>
+              <option value="player">Player</option>
+              <option value="referee">Referee</option>
+            </select>
+          </div>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2">
           {navItems.map((item) => {
@@ -62,7 +85,14 @@ export function MainLayout() {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-6xl mx-auto space-y-6">
-             <Outlet />
+            {role !== 'admin' && location.pathname !== '/' ? (
+              <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col items-center justify-center text-center">
+                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 mb-2">Access Denied</h2>
+                <p className="text-slate-500">You do not have permission to view this page.</p>
+              </div>
+            ) : (
+              <Outlet />
+            )}
           </div>
         </div>
       </main>
