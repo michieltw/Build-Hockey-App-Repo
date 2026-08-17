@@ -59,6 +59,10 @@ const SCHEMA = {
   lineups: [
     'id', 'game_id', 'team_id', 'player_id', 'position', 'line_number',
     'is_starting', 'created_at'
+  ],
+  player_lookup: [
+    'id', 'player_id', 'person_id', 'first_name', 'last_name',
+    'jersey_number', 'current_team_id', 'updated_at'
   ]
 };
 
@@ -109,6 +113,64 @@ function getSheetDataAsJson(sheetName) {
   });
 
   return jsonArray;
+}
+
+/**
+ * Helper to denormalize player data into player_lookup sheet.
+ */
+function syncPlayerLookup(ss, playerData, playerId, timestamp) {
+  try {
+    const personsSheet = ss.getSheetByName('persons');
+    const lookupSheet = ss.getSheetByName('player_lookup');
+
+    if (!personsSheet || !lookupSheet) return;
+
+    // 1. Fetch Person details
+    const personsData = personsSheet.getDataRange().getValues();
+    const personsHeaders = personsData[0];
+    const idIndex = personsHeaders.indexOf('id');
+    const fnIndex = personsHeaders.indexOf('first_name');
+    const lnIndex = personsHeaders.indexOf('last_name');
+
+    if (idIndex === -1 || fnIndex === -1 || lnIndex === -1) return;
+
+    let firstName = 'Unknown';
+    let lastName = 'Unknown';
+
+    // Find matching person
+    for (let i = 1; i < personsData.length; i++) {
+      if (personsData[i][idIndex] == playerData.person_id) {
+        firstName = personsData[i][fnIndex];
+        lastName = personsData[i][lnIndex];
+        break;
+      }
+    }
+
+    // 2. Prepare new player_lookup row
+    const lookupData = lookupSheet.getDataRange().getValues();
+    let newLookupId = 1;
+    if (lookupData.length > 1) {
+      const existingIds = lookupData.slice(1).map(row => parseInt(row[0]) || 0);
+      newLookupId = Math.max(...existingIds) + 1;
+    }
+
+    const newRow = SCHEMA['player_lookup'].map(header => {
+      if (header === 'id') return newLookupId;
+      if (header === 'player_id') return playerId;
+      if (header === 'person_id') return playerData.person_id || "";
+      if (header === 'first_name') return firstName;
+      if (header === 'last_name') return lastName;
+      if (header === 'jersey_number') return playerData.jersey_number || "";
+      if (header === 'current_team_id') return ""; // Cannot determine at player creation, updated later via rosters
+      if (header === 'updated_at') return timestamp;
+      return "";
+    });
+
+    lookupSheet.appendRow(newRow);
+  } catch (err) {
+    // Fail silently so we don't break the main doPost
+    console.error("syncPlayerLookup failed: " + err.message);
+  }
 }
 
 /**
@@ -179,6 +241,11 @@ function doPost(e) {
     });
 
     sheet.appendRow(newRow);
+
+    // Post-processing triggers
+    if (table === 'players') {
+      syncPlayerLookup(ss, postData, newId, timestamp);
+    }
 
     response = {
       success: true,
