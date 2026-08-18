@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, UserSquare2, Home, Trophy, Settings, Activity, Shield, CalendarDays, ClipboardCheck, Scale, ArrowRightLeft, FileWarning, Gavel, ListOrdered } from "lucide-react";
+import { LayoutDashboard, Users, UserSquare2, Home, Trophy, Settings, Activity, Shield, CalendarDays, ClipboardCheck, Scale, ArrowRightLeft, FileWarning, Gavel, ListOrdered, Medal, BarChart3 } from "lucide-react";
 import { useAuthStore, type UserRole } from "../store/useAuthStore";
 
 export function MainLayout() {
@@ -19,6 +19,8 @@ export function MainLayout() {
     { name: "Seasons", path: "/seasons", icon: Trophy },
     { name: "Games", path: "/games", icon: CalendarDays },
     { name: "Game Officials", path: "/game-officials", icon: Scale },
+    { name: "Playoffs", path: "/playoffs", icon: Medal },
+    { name: "Advanced Stats", path: "/advanced-stats", icon: BarChart3 },
     { name: "Waivers", path: "/waivers", icon: FileWarning },
     { name: "Transfers", path: "/transfers", icon: ArrowRightLeft },
     { name: "Suspensions", path: "/suspensions", icon: Gavel },

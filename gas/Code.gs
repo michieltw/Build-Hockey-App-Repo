@@ -119,6 +119,24 @@ const SCHEMA = {
   player_draft: [
     'id', 'season_id', 'division_id', 'round', 'pick_order', 'team_id',
     'player_id', 'is_skipped', 'created_at'
+  ],
+  playoff_brackets: [
+    'id', 'season_id', 'division_id', 'round', 'bracket_position',
+    'home_team_id', 'away_team_id', 'winner_team_id', 'created_at', 'updated_at'
+  ],
+  playoff_seedings: [
+    'id', 'season_id', 'division_id', 'team_id', 'seed_rank',
+    'points_at_seeding', 'seeding_date', 'created_at'
+  ],
+  goalie_statistics: [
+    'id', 'player_id', 'season_id', 'team_id', 'games_played', 'games_started',
+    'wins', 'losses', 'ties', 'shutouts', 'shots_against', 'goals_against',
+    'save_percentage', 'goals_against_average', 'updated_at'
+  ],
+  team_versus_team_records: [
+    'id', 'season_id', 'team_a_id', 'team_b_id', 'games_played',
+    'team_a_wins', 'team_b_wins', 'ties', 'team_a_goals_for',
+    'team_b_goals_for', 'updated_at'
   ]
 };
 

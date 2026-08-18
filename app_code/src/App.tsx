@@ -16,6 +16,8 @@ import { Waivers } from "./pages/Waivers";
 import { Transfers } from "./pages/Transfers";
 import { Suspensions } from "./pages/Suspensions";
 import { PlayerDraft } from "./pages/PlayerDraft";
+import { Playoffs } from "./pages/Playoffs";
+import { AdvancedStats } from "./pages/AdvancedStats";
 import { fetchTableData } from "./services/api";
 import { useState } from "react";
 
@@ -95,6 +97,8 @@ function App() {
           <Route path="transfers" element={<Transfers />} />
           <Route path="suspensions" element={<Suspensions />} />
           <Route path="player-draft" element={<PlayerDraft />} />
+          <Route path="playoffs" element={<Playoffs />} />
+          <Route path="advanced-stats" element={<AdvancedStats />} />
           <Route path="settings" element={<PlaceholderPage title="Settings" />} />
         </Route>
       </Routes>
