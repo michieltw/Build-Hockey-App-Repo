@@ -301,6 +301,53 @@ function syncRosterUpdates(ss, rosterData, timestamp) {
 }
 
 /**
+ * Helper to denormalize and process game events (like penalties).
+ */
+function syncGameEvents(ss, eventData, eventId, timestamp) {
+  try {
+    if (eventData.event_type === 'penalty') {
+      const penaltySheet = ss.getSheetByName('penalty_box_events');
+      if (!penaltySheet) return;
+
+      const penaltyData = penaltySheet.getDataRange().getValues();
+
+      let newId = 1;
+      if (penaltyData.length > 1) {
+        const existingIds = penaltyData.slice(1).map(row => parseInt(row[0]) || 0);
+        newId = Math.max(...existingIds) + 1;
+      }
+
+      // Calculate box exit time logic can be complex depending on game clock
+      // For now, we just insert the entry, and exit logic could be handled via update later.
+      const newRow = SCHEMA['penalty_box_events'].map(header => {
+        if (header === 'id') return newId;
+        if (header === 'game_id') return eventData.game_id;
+        if (header === 'player_id') return eventData.player_id;
+        if (header === 'team_id') return eventData.team_id;
+        if (header === 'period') return eventData.period;
+        if (header === 'time_in_period') return eventData.time_in_period; // Entry time basically
+        if (header === 'box_entry_time') return eventData.time_in_period;
+        if (header === 'box_exit_time') return ""; // Active until cleared
+        if (header === 'duration_minutes') return eventData.penalty_duration;
+        if (header === 'penalty_event_id') return eventId;
+        if (header === 'created_at') return timestamp;
+        return "";
+      });
+
+      penaltySheet.appendRow(newRow);
+    }
+
+    // Note: If event_type === 'goal', we could update the 'games' table
+    // home_score / away_score directly here to denormalize scores,
+    // but the frontend is currently calculating it on the fly.
+    // We will keep it simple for now and rely on the events list.
+
+  } catch (err) {
+    console.error("syncGameEvents failed: " + err.message);
+  }
+}
+
+/**
  * Handle GET requests to fetch data.
  * Expected query parameters:
  *   - table: the name of the table/sheet to fetch (e.g. 'organizations' or 'teams')
@@ -374,6 +421,8 @@ function doPost(e) {
       syncPlayerLookup(ss, postData, newId, timestamp);
     } else if (table === 'rosters') {
       syncRosterUpdates(ss, postData, timestamp);
+    } else if (table === 'game_events') {
+      syncGameEvents(ss, postData, newId, timestamp);
     }
 
     response = {

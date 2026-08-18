@@ -15,10 +15,11 @@ export function GameDashboard() {
   const [isEventLoggerOpen, setIsEventLoggerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Nieuwe state voor Lineups & Players
+  // Nieuwe state voor Lineups, Players & Penalties
   const [awayLineup, setAwayLineup] = useState<any[]>([]);
   const [homeLineup, setHomeLineup] = useState<any[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
+  const [activePenalties, setActivePenalties] = useState<any[]>([]);
 
   useEffect(() => {
     loadGameData();
@@ -28,38 +29,57 @@ export function GameDashboard() {
     try {
       setLoading(true);
 
-      const [games, teams, venues, gameEvents, allLineups, playerLookup] = await Promise.all([
+      const [games, teams, venues, gameEvents, allLineups, playerLookup, penaltyEvents] = await Promise.all([
         fetchTableData("games"),
         fetchTableData("teams"),
         fetchTableData("venues"),
         fetchTableData("game_events"),
         fetchTableData("lineups"),
-        fetchTableData("player_lookup")
+        fetchTableData("player_lookup"),
+        fetchTableData("penalty_box_events")
       ]);
 
-      let foundGame = games.find((g: any) => g.id === Number(id));
+      let foundGame = (games || []).find((g: any) => g.id === Number(id));
 
       // Temporary fallback for UI testing in playwright
       if (!foundGame && id === 'test-ui') {
         foundGame = { id: 999, status: 'in_progress', game_type: 'regular', home_goals: 0, away_goals: 0, scheduled_time: new Date().toISOString() };
-        gameEvents.push({ game_id: 999, event_type: 'penalty', period: 1, time_in_period: '10:00', team_id: 1, penalty_type: 'hooking', penalty_duration: 2 });
+        if (gameEvents) {
+          gameEvents.push({ game_id: 999, event_type: 'penalty', period: 1, time_in_period: '10:00', team_id: 1, penalty_type: 'hooking', penalty_duration: 2, id: 999 });
+        }
       }
 
       if (!foundGame) {
         throw new Error("Game not found");
       }
 
-      setGame(foundGame);
       setHomeTeam(teams.find((t: any) => t.id === foundGame.home_team_id));
       setAwayTeam(teams.find((t: any) => t.id === foundGame.away_team_id));
       setVenue(venues.find((v: any) => v.id === foundGame.venue_id));
 
       // Filter events for this game and sort by creation (or period/time in a real app)
       const thisGameEvents = gameEvents.filter((e: any) => e.game_id === foundGame.id);
+
+      // Calculate dynamic score based on logged goal events
+      // (Backend does not currently denormalize scores into the games table)
+      let dynamicHomeScore = foundGame.home_goals || 0;
+      let dynamicAwayScore = foundGame.away_goals || 0;
+
+      thisGameEvents.forEach((e: any) => {
+        if (e.event_type === 'goal') {
+           if (e.team_id == foundGame.home_team_id) dynamicHomeScore++;
+           if (e.team_id == foundGame.away_team_id) dynamicAwayScore++;
+        }
+      });
+
+      setGame({ ...foundGame, home_goals: dynamicHomeScore, away_goals: dynamicAwayScore });
       setEvents(thisGameEvents.reverse());
 
       // Sla de spelers op om namen te kunnen tonen
       setPlayers(playerLookup);
+
+      const gamePenalties = (penaltyEvents || []).filter((p: any) => p.game_id == foundGame.id);
+      setActivePenalties(gamePenalties);
 
       // Splits de lineups op voor home en away
       const gameLineups = allLineups.filter((l: any) => l.game_id === foundGame.id);
@@ -286,14 +306,15 @@ export function GameDashboard() {
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
              <h3 className="text-lg font-bold text-slate-900 mb-4">Penalty Box</h3>
-             {events.filter(e => e.event_type === 'penalty').length === 0 ? (
+             {activePenalties.length === 0 ? (
                <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
-                  <p className="text-slate-500 font-medium">No penalties recorded</p>
+                  <p className="text-slate-500 font-medium">No active penalties</p>
                </div>
              ) : (
                <div className="space-y-2">
-                 {events.filter(e => e.event_type === 'penalty').slice(0, 5).map((penalty, idx) => {
+                 {activePenalties.map((penalty, idx) => {
                     const playerInfo = players.find(p => p.player_id === penalty.player_id);
+                    const originalEvent = events.find(e => e.id == penalty.penalty_event_id);
                     return (
                       <div key={idx} className="flex flex-col p-3 rounded-lg bg-amber-50 border border-amber-100">
                          <div className="flex justify-between items-start mb-1">
@@ -301,12 +322,12 @@ export function GameDashboard() {
                               {playerInfo ? `${playerInfo.first_name} ${playerInfo.last_name}` : 'Unknown Player'}
                             </span>
                             <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full tabular-nums">
-                              {penalty.penalty_duration} Min
+                              {penalty.duration_minutes} Min
                             </span>
                          </div>
                          <div className="flex justify-between text-xs text-slate-600">
-                            <span className="capitalize">{penalty.penalty_type?.replace('_', ' ')}</span>
-                            <span>P{penalty.period} • {penalty.time_in_period}</span>
+                            <span className="capitalize">{originalEvent?.penalty_type?.replace('_', ' ') || 'Penalty'}</span>
+                            <span>P{penalty.period} • Entry: {penalty.box_entry_time}</span>
                          </div>
                       </div>
                     )
