@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, UserSquare2, Home, Trophy, Settings, Activity, Shield, CalendarDays, ClipboardCheck, Scale, ArrowRightLeft, FileWarning, Gavel, ListOrdered, Medal, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Users, UserSquare2, Home, Trophy, Settings, Activity, Shield, CalendarDays, ClipboardCheck, Scale, ArrowRightLeft, FileWarning, Gavel, ListOrdered, Medal, BarChart3, Ticket, BookOpen, MessageSquare, Files } from "lucide-react";
 import { useAuthStore, type UserRole } from "../store/useAuthStore";
 
 export function MainLayout() {
@@ -25,6 +25,10 @@ export function MainLayout() {
     { name: "Transfers", path: "/transfers", icon: ArrowRightLeft },
     { name: "Suspensions", path: "/suspensions", icon: Gavel },
     { name: "Player Draft", path: "/player-draft", icon: ListOrdered },
+    { name: "Events", path: "/events", icon: Ticket },
+    { name: "Practices", path: "/practices", icon: BookOpen },
+    { name: "Documents", path: "/documents", icon: Files },
+    { name: "Messages", path: "/messages", icon: MessageSquare },
     { name: "Settings", path: "/settings", icon: Settings },
   ];
 

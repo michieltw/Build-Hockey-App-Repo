@@ -18,6 +18,10 @@ import { Suspensions } from "./pages/Suspensions";
 import { PlayerDraft } from "./pages/PlayerDraft";
 import { Playoffs } from "./pages/Playoffs";
 import { AdvancedStats } from "./pages/AdvancedStats";
+import { Events } from "./pages/Events";
+import { Practices } from "./pages/Practices";
+import { Documents } from "./pages/Documents";
+import { Messages } from "./pages/Messages";
 import { fetchTableData } from "./services/api";
 import { useState } from "react";
 
@@ -99,6 +103,10 @@ function App() {
           <Route path="player-draft" element={<PlayerDraft />} />
           <Route path="playoffs" element={<Playoffs />} />
           <Route path="advanced-stats" element={<AdvancedStats />} />
+          <Route path="events" element={<Events />} />
+          <Route path="practices" element={<Practices />} />
+          <Route path="documents" element={<Documents />} />
+          <Route path="messages" element={<Messages />} />
           <Route path="settings" element={<PlaceholderPage title="Settings" />} />
         </Route>
       </Routes>

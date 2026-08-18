@@ -137,6 +137,34 @@ const SCHEMA = {
     'id', 'season_id', 'team_a_id', 'team_b_id', 'games_played',
     'team_a_wins', 'team_b_wins', 'ties', 'team_a_goals_for',
     'team_b_goals_for', 'updated_at'
+  ],
+  events: [
+    'id', 'organization_id', 'name', 'description', 'event_date', 'event_time',
+    'venue_id', 'event_type', 'status', 'max_attendees', 'registration_required',
+    'registration_deadline', 'logo_url', 'banner_url', 'created_at', 'updated_at'
+  ],
+  event_rsvp: [
+    'id', 'event_id', 'user_id', 'status', 'response_date', 'notes',
+    'created_at', 'updated_at'
+  ],
+  messages: [
+    'id', 'sender_id', 'recipient_id', 'subject', 'body', 'is_read', 'read_at',
+    'created_at'
+  ],
+  documents: [
+    'id', 'organization_id', 'document_type', 'title', 'description', 'file_url',
+    'file_size_bytes', 'uploaded_by', 'season_id', 'team_id', 'player_id',
+    'created_at', 'updated_at'
+  ],
+  practice_sessions: [
+    'id', 'team_id', 'season_id', 'venue_id', 'scheduled_time', 'end_time',
+    'notes', 'is_cancelled', 'created_at', 'updated_at'
+  ],
+  practice_attendance: [
+    'id', 'practice_id', 'player_id', 'attendance_status', 'created_at'
+  ],
+  system_settings: [
+    'id', 'organization_id', 'setting_key', 'setting_value', 'updated_at'
   ]
 };
 
