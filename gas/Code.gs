@@ -1,10 +1,10 @@
 /**
  * Google Apps Script for ICE HOCKEY LEAGUE MANAGER
- * Current Phase: Phase 1
- * Objective: Set up the foundational GAS file for core Phase 1 tables.
+ * Current Phase: Phase 3
+ * Objective: Set up the foundational GAS file for core Phase 1, Phase 2, and Phase 3 (Games & Live Events) tables.
  */
 
-// Define Schema Headers for all Phase 1 tables
+// Define Schema Headers for tables
 const SCHEMA = {
   organizations: [
     'id', 'name', 'league_name', 'location', 'country', 'province_state',
@@ -66,6 +66,35 @@ const SCHEMA = {
   ],
   team_season_rosters: [
     'id', 'team_id', 'season_id', 'player_count', 'roster_status', 'updated_at'
+  ],
+  games: [
+    'id', 'season_id', 'division_id', 'home_team_id', 'away_team_id', 'venue_id',
+    'scheduled_time', 'status', 'home_goals', 'away_goals', 'game_type',
+    'overtime_period', 'is_shootout', 'shootout_home_goals', 'shootout_away_goals',
+    'game_duration_minutes', 'created_at', 'updated_at'
+  ],
+  game_approvals: [
+    'id', 'game_id', 'approved_by', 'approval_status', 'approval_date', 'notes',
+    'created_at', 'updated_at'
+  ],
+  game_events: [
+    'id', 'game_id', 'event_type', 'period', 'time_in_period', 'team_id',
+    'player_id', 'assist_player_id', 'second_assist_player_id', 'x_coordinate',
+    'y_coordinate', 'penalty_type', 'penalty_duration', 'is_confirmed',
+    'video_review_used', 'description', 'created_at'
+  ],
+  game_periods: [
+    'id', 'game_id', 'period_number', 'start_time', 'end_time', 'duration_minutes',
+    'home_goals_in_period', 'away_goals_in_period', 'created_at'
+  ],
+  game_attendance: [
+    'id', 'game_id', 'paid_count', 'free_count', 'total_attendance',
+    'capacity_utilization_percent', 'recorded_by', 'created_at', 'updated_at'
+  ],
+  penalty_box_events: [
+    'id', 'game_id', 'player_id', 'team_id', 'period', 'time_in_period',
+    'box_entry_time', 'box_exit_time', 'duration_minutes', 'penalty_event_id',
+    'created_at'
   ]
 };
 
@@ -272,6 +301,99 @@ function syncRosterUpdates(ss, rosterData, timestamp) {
 }
 
 /**
+ * Helper to denormalize and process game events (like penalties).
+ */
+function syncGameEvents(ss, eventData, eventId, timestamp) {
+  try {
+    if (eventData.event_type === 'penalty') {
+      const penaltySheet = ss.getSheetByName('penalty_box_events');
+      if (!penaltySheet) return;
+
+      const penaltyData = penaltySheet.getDataRange().getValues();
+
+      let newId = 1;
+      if (penaltyData.length > 1) {
+        const existingIds = penaltyData.slice(1).map(row => parseInt(row[0]) || 0);
+        newId = Math.max(...existingIds) + 1;
+      }
+
+      // Calculate box exit time logic can be complex depending on game clock
+      // For now, we just insert the entry, and exit logic could be handled via update later.
+      const newRow = SCHEMA['penalty_box_events'].map(header => {
+        if (header === 'id') return newId;
+        if (header === 'game_id') return eventData.game_id;
+        if (header === 'player_id') return eventData.player_id;
+        if (header === 'team_id') return eventData.team_id;
+        if (header === 'period') return eventData.period;
+        if (header === 'time_in_period') return eventData.time_in_period; // Entry time basically
+        if (header === 'box_entry_time') return eventData.time_in_period;
+        if (header === 'box_exit_time') return ""; // Active until cleared
+        if (header === 'duration_minutes') return eventData.penalty_duration;
+        if (header === 'penalty_event_id') return eventId;
+        if (header === 'created_at') return timestamp;
+        return "";
+      });
+
+      penaltySheet.appendRow(newRow);
+    }
+
+    // --- Update Game Score & Status ---
+    // If a game event happens, update the game's score if it's a goal,
+    // and automatically mark the game as 'in_progress' if it isn't already.
+    const gamesSheet = ss.getSheetByName('games');
+    if (gamesSheet) {
+      const gamesData = gamesSheet.getDataRange().getValues();
+      const headers = gamesData[0];
+      const idIdx = headers.indexOf('id');
+      const homeTeamIdx = headers.indexOf('home_team_id');
+      const awayTeamIdx = headers.indexOf('away_team_id');
+      const homeGoalsIdx = headers.indexOf('home_goals');
+      const awayGoalsIdx = headers.indexOf('away_goals');
+      const statusIdx = headers.indexOf('status');
+
+      if (idIdx !== -1) {
+        for (let i = 1; i < gamesData.length; i++) {
+          if (gamesData[i][idIdx] == eventData.game_id) {
+
+            // 1. Update Score if goal
+            if (eventData.event_type === 'goal') {
+              let homeTeamId = gamesData[i][homeTeamIdx];
+              let awayTeamId = gamesData[i][awayTeamIdx];
+
+              if (eventData.team_id == homeTeamId && homeGoalsIdx !== -1) {
+                let currentGoals = parseInt(gamesData[i][homeGoalsIdx]) || 0;
+                gamesSheet.getRange(i + 1, homeGoalsIdx + 1).setValue(currentGoals + 1);
+              } else if (eventData.team_id == awayTeamId && awayGoalsIdx !== -1) {
+                let currentGoals = parseInt(gamesData[i][awayGoalsIdx]) || 0;
+                gamesSheet.getRange(i + 1, awayGoalsIdx + 1).setValue(currentGoals + 1);
+              }
+            }
+
+            // 2. Automatically update status based on event
+            if (statusIdx !== -1) {
+              let currentStatus = (gamesData[i][statusIdx] || "").toString().toLowerCase();
+
+              if (eventData.event_type === 'game_end') {
+                // If it's a game end event, mark the game as completed
+                gamesSheet.getRange(i + 1, statusIdx + 1).setValue('completed');
+              } else if (currentStatus === 'scheduled') {
+                // Otherwise, if any event is logged and it's scheduled, start the game
+                gamesSheet.getRange(i + 1, statusIdx + 1).setValue('in_progress');
+              }
+            }
+
+            break; // Found the game, exit loop
+          }
+        }
+      }
+    }
+
+  } catch (err) {
+    console.error("syncGameEvents failed: " + err.message);
+  }
+}
+
+/**
  * Handle GET requests to fetch data.
  * Expected query parameters:
  *   - table: the name of the table/sheet to fetch (e.g. 'organizations' or 'teams')
@@ -345,6 +467,8 @@ function doPost(e) {
       syncPlayerLookup(ss, postData, newId, timestamp);
     } else if (table === 'rosters') {
       syncRosterUpdates(ss, postData, timestamp);
+    } else if (table === 'game_events') {
+      syncGameEvents(ss, postData, newId, timestamp);
     }
 
     response = {
