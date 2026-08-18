@@ -95,6 +95,30 @@ const SCHEMA = {
     'id', 'game_id', 'player_id', 'team_id', 'period', 'time_in_period',
     'box_entry_time', 'box_exit_time', 'duration_minutes', 'penalty_event_id',
     'created_at'
+  ],
+  team_staff: [
+    'id', 'team_id', 'season_id', 'person_id', 'staff_role', 'hire_date',
+    'end_date', 'created_at', 'updated_at'
+  ],
+  game_officials: [
+    'id', 'game_id', 'person_id', 'official_role', 'created_at'
+  ],
+  waivers: [
+    'id', 'season_id', 'player_id', 'requesting_team_id', 'current_team_id',
+    'status', 'request_date', 'process_date', 'notes', 'processed_by', 'created_at'
+  ],
+  transfers: [
+    'id', 'season_id', 'player_id', 'from_team_id', 'to_team_id', 'transfer_type',
+    'status', 'request_date', 'approval_date', 'reason', 'approved_by', 'created_at'
+  ],
+  suspensions: [
+    'id', 'player_id', 'season_id', 'reason', 'suspension_length_games',
+    'start_date', 'end_date', 'issued_by', 'status', 'notes', 'document_url',
+    'created_at', 'updated_at'
+  ],
+  player_draft: [
+    'id', 'season_id', 'division_id', 'round', 'pick_order', 'team_id',
+    'player_id', 'is_skipped', 'created_at'
   ]
 };
 

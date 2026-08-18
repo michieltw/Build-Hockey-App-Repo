@@ -10,6 +10,12 @@ import { Equipment } from "./pages/Equipment";
 import { Lineups } from "./pages/Lineups";
 import { Games } from "./pages/Games";
 import { GameDashboard } from "./pages/GameDashboard";
+import { TeamStaff } from "./pages/TeamStaff";
+import { GameOfficials } from "./pages/GameOfficials";
+import { Waivers } from "./pages/Waivers";
+import { Transfers } from "./pages/Transfers";
+import { Suspensions } from "./pages/Suspensions";
+import { PlayerDraft } from "./pages/PlayerDraft";
 import { fetchTableData } from "./services/api";
 import { useState } from "react";
 
@@ -83,6 +89,12 @@ function App() {
           <Route path="seasons" element={<Seasons />} />
           <Route path="games" element={<Games />} />
           <Route path="games/:id" element={<GameDashboard />} />
+          <Route path="team-staff" element={<TeamStaff />} />
+          <Route path="game-officials" element={<GameOfficials />} />
+          <Route path="waivers" element={<Waivers />} />
+          <Route path="transfers" element={<Transfers />} />
+          <Route path="suspensions" element={<Suspensions />} />
+          <Route path="player-draft" element={<PlayerDraft />} />
           <Route path="settings" element={<PlaceholderPage title="Settings" />} />
         </Route>
       </Routes>
