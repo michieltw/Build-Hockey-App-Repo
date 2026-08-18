@@ -60,19 +60,9 @@ export function GameDashboard() {
       // Filter events for this game and sort by creation (or period/time in a real app)
       const thisGameEvents = gameEvents.filter((e: any) => e.game_id === foundGame.id);
 
-      // Calculate dynamic score based on logged goal events
-      // (Backend does not currently denormalize scores into the games table)
-      let dynamicHomeScore = foundGame.home_goals || 0;
-      let dynamicAwayScore = foundGame.away_goals || 0;
-
-      thisGameEvents.forEach((e: any) => {
-        if (e.event_type === 'goal') {
-           if (e.team_id == foundGame.home_team_id) dynamicHomeScore++;
-           if (e.team_id == foundGame.away_team_id) dynamicAwayScore++;
-        }
-      });
-
-      setGame({ ...foundGame, home_goals: dynamicHomeScore, away_goals: dynamicAwayScore });
+      // The backend (GAS) now denormalizes goals directly into the games table.
+      // We rely on foundGame.home_goals and foundGame.away_goals directly.
+      setGame(foundGame);
       setEvents(thisGameEvents.reverse());
 
       // Sla de spelers op om namen te kunnen tonen

@@ -337,10 +337,51 @@ function syncGameEvents(ss, eventData, eventId, timestamp) {
       penaltySheet.appendRow(newRow);
     }
 
-    // Note: If event_type === 'goal', we could update the 'games' table
-    // home_score / away_score directly here to denormalize scores,
-    // but the frontend is currently calculating it on the fly.
-    // We will keep it simple for now and rely on the events list.
+    // --- Update Game Score & Status ---
+    // If a game event happens, update the game's score if it's a goal,
+    // and automatically mark the game as 'in_progress' if it isn't already.
+    const gamesSheet = ss.getSheetByName('games');
+    if (gamesSheet) {
+      const gamesData = gamesSheet.getDataRange().getValues();
+      const headers = gamesData[0];
+      const idIdx = headers.indexOf('id');
+      const homeTeamIdx = headers.indexOf('home_team_id');
+      const awayTeamIdx = headers.indexOf('away_team_id');
+      const homeGoalsIdx = headers.indexOf('home_goals');
+      const awayGoalsIdx = headers.indexOf('away_goals');
+      const statusIdx = headers.indexOf('status');
+
+      if (idIdx !== -1) {
+        for (let i = 1; i < gamesData.length; i++) {
+          if (gamesData[i][idIdx] == eventData.game_id) {
+
+            // 1. Update Score if goal
+            if (eventData.event_type === 'goal') {
+              let homeTeamId = gamesData[i][homeTeamIdx];
+              let awayTeamId = gamesData[i][awayTeamIdx];
+
+              if (eventData.team_id == homeTeamId && homeGoalsIdx !== -1) {
+                let currentGoals = parseInt(gamesData[i][homeGoalsIdx]) || 0;
+                gamesSheet.getRange(i + 1, homeGoalsIdx + 1).setValue(currentGoals + 1);
+              } else if (eventData.team_id == awayTeamId && awayGoalsIdx !== -1) {
+                let currentGoals = parseInt(gamesData[i][awayGoalsIdx]) || 0;
+                gamesSheet.getRange(i + 1, awayGoalsIdx + 1).setValue(currentGoals + 1);
+              }
+            }
+
+            // 2. Automatically set status to in_progress if an event is logged
+            if (statusIdx !== -1) {
+              let currentStatus = (gamesData[i][statusIdx] || "").toString().toLowerCase();
+              if (currentStatus === 'scheduled') {
+                gamesSheet.getRange(i + 1, statusIdx + 1).setValue('in_progress');
+              }
+            }
+
+            break; // Found the game, exit loop
+          }
+        }
+      }
+    }
 
   } catch (err) {
     console.error("syncGameEvents failed: " + err.message);
