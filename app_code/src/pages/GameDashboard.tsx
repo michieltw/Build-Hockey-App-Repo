@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchTableData } from "../services/api";
+import { fetchTableData, insertTableData } from "../services/api";
 import { ArrowLeft, Clock, MapPin, AlertCircle, Shield, Plus, Goal, Flag, Activity } from "lucide-react";
 import { LiveEventLogger } from "../components/LiveEventLogger";
 
@@ -13,6 +13,7 @@ export function GameDashboard() {
   const [venue, setVenue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEventLoggerOpen, setIsEventLoggerOpen] = useState(false);
+  const [isEndingGame, setIsEndingGame] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Nieuwe state voor Lineups, Players & Penalties
@@ -203,13 +204,43 @@ export function GameDashboard() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col h-full min-h-[400px]">
              <div className="flex items-center justify-between mb-6">
                <h3 className="text-lg font-bold text-slate-900">Live Events</h3>
-               <button
-                 onClick={() => setIsEventLoggerOpen(true)}
-                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors"
-               >
-                 <Plus className="w-4 h-4" />
-                 Log Event
-               </button>
+               <div className="flex items-center gap-3">
+                 {game.status === 'in_progress' && (
+                   <button
+                     onClick={async () => {
+                        if (!window.confirm("Are you sure you want to end this game?")) return;
+                        try {
+                          setIsEndingGame(true);
+                          await insertTableData("game_events", {
+                             game_id: game.id,
+                             event_type: 'game_end',
+                             period: '4 (OT)', // Fallback, would be calculated from last event
+                             time_in_period: '00:00',
+                             team_id: game.home_team_id // Dummy requirement
+                          });
+                          loadGameData();
+                        } catch (err: any) {
+                          alert("Failed to end game: " + err.message);
+                        } finally {
+                          setIsEndingGame(false);
+                        }
+                     }}
+                     disabled={isEndingGame}
+                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs font-semibold hover:bg-red-100 disabled:opacity-50 transition-colors"
+                   >
+                     {isEndingGame ? 'Ending...' : 'End Game'}
+                   </button>
+                 )}
+                 {game.status !== 'completed' && (
+                   <button
+                     onClick={() => setIsEventLoggerOpen(true)}
+                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors"
+                   >
+                     <Plus className="w-4 h-4" />
+                     Log Event
+                   </button>
+                 )}
+               </div>
              </div>
 
              <div className="flex-1 overflow-y-auto pr-2 space-y-4">

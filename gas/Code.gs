@@ -369,10 +369,15 @@ function syncGameEvents(ss, eventData, eventId, timestamp) {
               }
             }
 
-            // 2. Automatically set status to in_progress if an event is logged
+            // 2. Automatically update status based on event
             if (statusIdx !== -1) {
               let currentStatus = (gamesData[i][statusIdx] || "").toString().toLowerCase();
-              if (currentStatus === 'scheduled') {
+
+              if (eventData.event_type === 'game_end') {
+                // If it's a game end event, mark the game as completed
+                gamesSheet.getRange(i + 1, statusIdx + 1).setValue('completed');
+              } else if (currentStatus === 'scheduled') {
+                // Otherwise, if any event is logged and it's scheduled, start the game
                 gamesSheet.getRange(i + 1, statusIdx + 1).setValue('in_progress');
               }
             }
