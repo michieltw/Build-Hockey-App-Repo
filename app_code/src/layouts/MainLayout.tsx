@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, UserSquare2, Home, Trophy, Settings, Activity, Shield, CalendarDays } from "lucide-react";
+import { LayoutDashboard, Users, UserSquare2, Home, Trophy, Settings, Activity, Shield, CalendarDays, ClipboardCheck, Scale, ArrowRightLeft, FileWarning, Gavel, ListOrdered, Medal, BarChart3, Ticket, BookOpen, MessageSquare, Files } from "lucide-react";
 import { useAuthStore, type UserRole } from "../store/useAuthStore";
 
 export function MainLayout() {
@@ -15,8 +15,20 @@ export function MainLayout() {
     { name: "Equipment", path: "/equipment", icon: Shield },
     { name: "Lineups", path: "/lineups", icon: Users },
     { name: "Persons", path: "/persons", icon: UserSquare2 },
+    { name: "Team Staff", path: "/team-staff", icon: ClipboardCheck },
     { name: "Seasons", path: "/seasons", icon: Trophy },
     { name: "Games", path: "/games", icon: CalendarDays },
+    { name: "Game Officials", path: "/game-officials", icon: Scale },
+    { name: "Playoffs", path: "/playoffs", icon: Medal },
+    { name: "Advanced Stats", path: "/advanced-stats", icon: BarChart3 },
+    { name: "Waivers", path: "/waivers", icon: FileWarning },
+    { name: "Transfers", path: "/transfers", icon: ArrowRightLeft },
+    { name: "Suspensions", path: "/suspensions", icon: Gavel },
+    { name: "Player Draft", path: "/player-draft", icon: ListOrdered },
+    { name: "Events", path: "/events", icon: Ticket },
+    { name: "Practices", path: "/practices", icon: BookOpen },
+    { name: "Documents", path: "/documents", icon: Files },
+    { name: "Messages", path: "/messages", icon: MessageSquare },
     { name: "Settings", path: "/settings", icon: Settings },
   ];
 

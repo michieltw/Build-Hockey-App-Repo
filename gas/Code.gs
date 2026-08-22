@@ -95,6 +95,76 @@ const SCHEMA = {
     'id', 'game_id', 'player_id', 'team_id', 'period', 'time_in_period',
     'box_entry_time', 'box_exit_time', 'duration_minutes', 'penalty_event_id',
     'created_at'
+  ],
+  team_staff: [
+    'id', 'team_id', 'season_id', 'person_id', 'staff_role', 'hire_date',
+    'end_date', 'created_at', 'updated_at'
+  ],
+  game_officials: [
+    'id', 'game_id', 'person_id', 'official_role', 'created_at'
+  ],
+  waivers: [
+    'id', 'season_id', 'player_id', 'requesting_team_id', 'current_team_id',
+    'status', 'request_date', 'process_date', 'notes', 'processed_by', 'created_at'
+  ],
+  transfers: [
+    'id', 'season_id', 'player_id', 'from_team_id', 'to_team_id', 'transfer_type',
+    'status', 'request_date', 'approval_date', 'reason', 'approved_by', 'created_at'
+  ],
+  suspensions: [
+    'id', 'player_id', 'season_id', 'reason', 'suspension_length_games',
+    'start_date', 'end_date', 'issued_by', 'status', 'notes', 'document_url',
+    'created_at', 'updated_at'
+  ],
+  player_draft: [
+    'id', 'season_id', 'division_id', 'round', 'pick_order', 'team_id',
+    'player_id', 'is_skipped', 'created_at'
+  ],
+  playoff_brackets: [
+    'id', 'season_id', 'division_id', 'round', 'bracket_position',
+    'home_team_id', 'away_team_id', 'winner_team_id', 'created_at', 'updated_at'
+  ],
+  playoff_seedings: [
+    'id', 'season_id', 'division_id', 'team_id', 'seed_rank',
+    'points_at_seeding', 'seeding_date', 'created_at'
+  ],
+  goalie_statistics: [
+    'id', 'player_id', 'season_id', 'team_id', 'games_played', 'games_started',
+    'wins', 'losses', 'ties', 'shutouts', 'shots_against', 'goals_against',
+    'save_percentage', 'goals_against_average', 'updated_at'
+  ],
+  team_versus_team_records: [
+    'id', 'season_id', 'team_a_id', 'team_b_id', 'games_played',
+    'team_a_wins', 'team_b_wins', 'ties', 'team_a_goals_for',
+    'team_b_goals_for', 'updated_at'
+  ],
+  events: [
+    'id', 'organization_id', 'name', 'description', 'event_date', 'event_time',
+    'venue_id', 'event_type', 'status', 'max_attendees', 'registration_required',
+    'registration_deadline', 'logo_url', 'banner_url', 'created_at', 'updated_at'
+  ],
+  event_rsvp: [
+    'id', 'event_id', 'user_id', 'status', 'response_date', 'notes',
+    'created_at', 'updated_at'
+  ],
+  messages: [
+    'id', 'sender_id', 'recipient_id', 'subject', 'body', 'is_read', 'read_at',
+    'created_at'
+  ],
+  documents: [
+    'id', 'organization_id', 'document_type', 'title', 'description', 'file_url',
+    'file_size_bytes', 'uploaded_by', 'season_id', 'team_id', 'player_id',
+    'created_at', 'updated_at'
+  ],
+  practice_sessions: [
+    'id', 'team_id', 'season_id', 'venue_id', 'scheduled_time', 'end_time',
+    'notes', 'is_cancelled', 'created_at', 'updated_at'
+  ],
+  practice_attendance: [
+    'id', 'practice_id', 'player_id', 'attendance_status', 'created_at'
+  ],
+  system_settings: [
+    'id', 'organization_id', 'setting_key', 'setting_value', 'updated_at'
   ]
 };
 
